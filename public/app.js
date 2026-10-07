@@ -69,7 +69,9 @@ async function api(path, { method = 'GET', body, auth = true } = {}){
   }
 
   if (!response.ok){
-    throw new Error(data.message || `Request failed (error ${response.status}). Please try again.`);
+    const error = new Error(data.message || `Request failed (error ${response.status}). Please try again.`);
+    error.status = response.status;
+    throw error;
   }
 
   return data;
@@ -687,6 +689,218 @@ registerPage('dashboard', {
       readings.replaceChildren(cardHead('Recent readings', 'clock'), el('p', 'text-muted', "Couldn't load the latest readings. Refresh the page to try again."));
       showToast(error.message, 'error', 6000);
     }
+  }
+});
+
+// ---------------- Doctor: patient list ----------------
+let allPatients = [];
+
+function patientAge(patient){
+  const age = patient.dob ? Core.ageFromDob(patient.dob) : patient.age;
+  return Core.hasValue(age) ? age : null;
+}
+
+function showPatientsEmpty(title, text){
+  document.getElementById('patients-table-wrap').hidden = true;
+  document.getElementById('patients-empty').hidden = false;
+  document.getElementById('patients-empty-title').textContent = title;
+  document.getElementById('patients-empty-text').textContent = text;
+}
+
+function cell(text, label){
+  const td = el('td', null, text);
+  if (label) td.dataset.label = label;
+  return td;
+}
+
+function renderPatientRows(query){
+  const tbody = document.getElementById('patients-body');
+  const matches = Core.filterPatients(allPatients, query);
+
+  if (!allPatients.length){
+    showPatientsEmpty('No patients registered yet.', 'Patients appear here once their parents register.');
+    return;
+  }
+  if (!matches.length){
+    showPatientsEmpty(`No patients match "${query.trim()}".`, 'Check the spelling, or search by patient ID.');
+    return;
+  }
+
+  document.getElementById('patients-table-wrap').hidden = false;
+  document.getElementById('patients-empty').hidden = true;
+
+  tbody.replaceChildren(...matches.map(patient => {
+    const href = Core.routeHash('patient', { patientId: patient.patientId });
+    const row = el('tr');
+    row.addEventListener('click', (event) => {
+      if (!event.target.closest('a')) navigate(href);
+    });
+
+    const nameCell = el('td', 'patient-col');
+    const wrapper = el('div', 'patient-cell');
+    const avatar = el('span', 'avatar avatar-sm', Core.initials(patient.patientName));
+    avatar.setAttribute('aria-hidden', 'true');
+    const text = el('div', 'patient-cell-text');
+    const link = el('a', 'patient-link', patient.patientName || 'Unnamed patient');
+    link.href = href;
+    link.title = patient.patientName || '';
+    text.append(link, el('span', 'patient-sub', patient.parentName ? `Parent: ${patient.parentName}` : ''));
+    wrapper.append(avatar, text);
+    nameCell.appendChild(wrapper);
+
+    const age = patientAge(patient);
+    const statusCell = el('td');
+    statusCell.dataset.label = 'Status';
+    const badge = el('span');
+    renderStatusBadge(badge, patient.monitoringStatus);
+    statusCell.appendChild(badge);
+
+    row.append(
+      nameCell,
+      cell(patient.patientId, 'ID'),
+      cell(age === null ? '—' : `${age} yrs`, 'Age'),
+      cell(Core.formatVital(patient.heartRate, ' bpm'), 'Heart rate'),
+      cell(patient.lastReadingAt ? formatDateTime(patient.lastReadingAt) : '—', 'Last reading'),
+      statusCell
+    );
+    return row;
+  }));
+}
+
+document.getElementById('patient-search').addEventListener('input', (event) => renderPatientRows(event.target.value));
+
+registerPage('patients', {
+  async render(){
+    const session = getSession();
+    document.getElementById('doctor-greeting').textContent = session.doctorName ? `Signed in as ${session.doctorName}` : '';
+    const search = document.getElementById('patient-search');
+    const count = document.getElementById('patients-count');
+
+    document.getElementById('patients-table-wrap').hidden = false;
+    document.getElementById('patients-empty').hidden = true;
+    const loadingRow = el('tr', 'table-note');
+    const loadingCell = el('td', null, 'Loading patients…');
+    loadingCell.colSpan = 6;
+    loadingRow.appendChild(loadingCell);
+    document.getElementById('patients-body').replaceChildren(loadingRow);
+
+    try {
+      allPatients = await api('/api/patients');
+    } catch (error){
+      console.error(error);
+      if (error.handled) return;
+      showPatientsEmpty("Couldn't load patients.", 'Refresh the page to try again.');
+      showToast(error.message, 'error', 6000);
+      return;
+    }
+
+    count.textContent = String(allPatients.length);
+    count.hidden = false;
+    renderPatientRows(search.value);
+  }
+});
+
+// ---------------- Doctor: patient page ----------------
+function detailList(rows){
+  const list = el('dl', 'detail-list');
+  rows.forEach(([label, value]) => {
+    const row = el('div');
+    const dd = el('dd');
+    if (value instanceof Node) dd.appendChild(value);
+    else dd.textContent = value;
+    row.append(el('dt', null, label), dd);
+    list.appendChild(row);
+  });
+  return list;
+}
+
+function contactLink(href, iconName, text){
+  const link = el('a');
+  link.href = href;
+  link.append(iconEl(iconName), text);
+  return link;
+}
+
+function renderPatientMeta(patient){
+  const meta = document.getElementById('patient-meta');
+  const badges = [el('span', 'badge badge-neutral', `ID ${patient.patientId}`)];
+  const age = patientAge(patient);
+  if (age !== null) badges.push(el('span', 'badge badge-neutral', `${age} years`));
+  if (patient.gender) badges.push(el('span', 'badge badge-neutral', patient.gender));
+  const status = el('span');
+  renderStatusBadge(status, patient.monitoringStatus);
+  badges.push(status);
+  meta.replaceChildren(...badges);
+}
+
+function renderPatientContact(patient){
+  const phone = String(patient.parentPhone || '').replace(/\D/g, '');
+  document.getElementById('patient-contact').replaceChildren(
+    cardHead('Parent contact', 'users'),
+    detailList([
+      ['Name', patient.parentName || '—'],
+      ['Phone', phone ? contactLink(`tel:${phone}`, 'phone', phone) : '—'],
+      ['Email', patient.parentEmail ? contactLink(`mailto:${patient.parentEmail}`, 'mail', patient.parentEmail) : '—']
+    ])
+  );
+}
+
+function renderPatientSummary(patient){
+  const formatDate = value => new Date(value).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+  const start = patient.createdAt ? formatDate(patient.createdAt) : '—';
+  const end = formatDate(Core.lastReadingTime(patient) || Date.now());
+  document.getElementById('patient-summary').replaceChildren(
+    cardHead('Report summary', 'file'),
+    detailList([
+      ['Monitoring period', `${start} – ${end}`],
+      ['Heart rate', Core.heartRateSummary(patient)]
+    ])
+  );
+}
+
+registerPage('patient', {
+  async render(params){
+    const found = document.getElementById('patient-found');
+    const missing = document.getElementById('patient-missing');
+    const crumb = document.getElementById('patient-crumb');
+    const title = document.getElementById('patient-title');
+
+    found.hidden = false;
+    missing.hidden = true;
+    crumb.textContent = params.patientId;
+    title.textContent = 'Loading patient…';
+    document.getElementById('patient-meta').replaceChildren();
+    renderVitalCards(document.getElementById('patient-vitals'), null);
+    renderEcgCard(document.getElementById('patient-ecg'), null);
+    renderReadingsTable(document.getElementById('patient-readings'), null);
+    document.getElementById('patient-contact').replaceChildren(cardHead('Parent contact', 'users'), el('p', 'is-loading', 'Loading…'));
+    document.getElementById('patient-summary').replaceChildren(cardHead('Report summary', 'file'), el('p', 'is-loading', 'Loading…'));
+
+    let patient;
+    try {
+      patient = await api(`/api/patient/${encodeURIComponent(params.patientId)}`);
+    } catch (error){
+      console.error(error);
+      if (error.handled) return;
+      found.hidden = true;
+      missing.hidden = false;
+      document.getElementById('patient-missing-text').textContent = error.status === 404
+        ? `No patient has the ID ${params.patientId}.`
+        : "This patient's record couldn't be loaded. Refresh the page to try again.";
+      return;
+    }
+
+    setCurrentReportPatient(patient);
+    const name = patient.patientName || 'Unnamed patient';
+    crumb.textContent = name;
+    title.textContent = name;
+    document.title = `${name} · CarePulse`;
+    renderPatientMeta(patient);
+    renderVitalCards(document.getElementById('patient-vitals'), patient);
+    renderEcgCard(document.getElementById('patient-ecg'), patient);
+    renderReadingsTable(document.getElementById('patient-readings'), patient);
+    renderPatientContact(patient);
+    renderPatientSummary(patient);
   }
 });
 

@@ -639,6 +639,68 @@ form .btn-block{ margin-top:8px; }
   .page-head .btn{ width:100%; }
 }
 
+/* ---------- Doctor pages ---------- */
+.title-with-badge{ display:flex; align-items:center; gap:10px; }
+.title-with-badge .badge{ font-size:13px; }
+.search-box{ width:min(340px, 100%); align-self:center; }
+.card-flush{ padding:0; overflow:hidden; }
+.card-flush .table-wrap{ margin:0; }
+
+.patients-table tbody tr{ cursor:pointer; transition:background 120ms ease; }
+.patients-table tbody tr:hover{ background:var(--surface-hover); }
+.patient-cell{ display:flex; align-items:center; gap:12px; min-width:0; }
+.patient-cell .avatar{ margin:0; }
+.patient-cell-text{ display:flex; flex-direction:column; min-width:0; }
+.patient-link{ color:var(--text); font-weight:600; max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.patient-link:hover{ color:var(--primary-text); text-decoration:none; }
+.patient-sub{ font-size:13px; color:var(--text-faint); max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.table-note td{ color:var(--text-faint); text-align:center; padding:28px 16px; cursor:default; }
+
+.breadcrumb{ display:flex; align-items:center; gap:6px; font-size:14px; color:var(--text-faint); margin-bottom:16px; min-width:0; }
+.breadcrumb .icon{ width:16px; height:16px; }
+.breadcrumb a{ font-weight:500; }
+.breadcrumb [aria-current]{ color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+.patient-grid{ display:grid; grid-template-columns:minmax(0, 1.6fr) minmax(0, 1fr); gap:16px; align-items:start; }
+.detail-list{ display:flex; flex-direction:column; gap:12px; margin:0; }
+.detail-list div{ display:flex; justify-content:space-between; gap:16px; font-size:15px; }
+.detail-list dt{ color:var(--text-muted); }
+.detail-list dd{ margin:0; font-weight:500; text-align:right; min-width:0; overflow-wrap:anywhere; }
+.detail-list a{ display:inline-flex; align-items:center; gap:6px; }
+.empty-action{ margin-top:16px; }
+
+@media (max-width:1023px){
+  .patient-grid{ grid-template-columns:1fr; }
+}
+
+/* The six-column patient table needs ~920px; below that, each row becomes a card. */
+@media (max-width:1023px){
+  .patients-table thead{ display:none; }
+  .patients-table,
+  .patients-table tbody{ display:block; }
+  .patients-table tbody tr{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(110px, 1fr));
+    gap:12px 16px;
+    padding:16px 20px;
+    border-bottom:1px solid var(--border);
+  }
+  .patients-table tbody tr:last-child{ border-bottom:none; }
+  .patients-table td,
+  .card .patients-table td:first-child,
+  .card .patients-table td:last-child{ display:flex; flex-direction:column; gap:2px; padding:0; border:none; }
+  .patients-table td[data-label]::before{ content:attr(data-label); font-size:12px; color:var(--text-faint); }
+  .patients-table td.patient-col,
+  .patients-table .table-note td{ grid-column:1 / -1; }
+  .patients-table td .badge{ align-self:flex-start; }
+  .patient-link,
+  .patient-sub{ max-width:100%; }
+}
+
+@media (max-width:640px){
+  .search-box{ width:100%; }
+}
+
 /* ---------- Footer ---------- */
 .site-footer{ background:var(--surface); border-top:1px solid var(--border); padding-top:48px; }
 .footer-grid{ display:grid; grid-template-columns:minmax(0, 1.6fr) repeat(3, minmax(0, 1fr)); gap:32px; }

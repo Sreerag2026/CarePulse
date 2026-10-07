@@ -520,11 +520,78 @@
     </section>
 
     <section class="page" data-page="patients" hidden>
-      <div class="container app-main"><h1>Patients</h1></div>
+      <div class="container app-main">
+        <div class="page-head">
+          <div>
+            <h1 class="title-with-badge">Patients <span class="badge badge-neutral" id="patients-count" hidden></span></h1>
+            <p id="doctor-greeting"></p>
+          </div>
+          <div class="input-icon search-box">
+            <svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>
+            <input type="search" class="input" id="patient-search" placeholder="Search by name or patient ID" aria-label="Search patients" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="card card-flush">
+          <div class="table-wrap" id="patients-table-wrap">
+            <table class="table patients-table">
+              <thead>
+                <tr><th>Patient</th><th>ID</th><th>Age</th><th>Heart rate</th><th>Last reading</th><th>Status</th></tr>
+              </thead>
+              <tbody id="patients-body"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="patients-empty" hidden>
+            <div class="empty-icon"><svg class="icon" aria-hidden="true"><use href="#i-users"/></svg></div>
+            <h3 id="patients-empty-title"></h3>
+            <p id="patients-empty-text"></p>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section class="page" data-page="patient" hidden>
-      <div class="container app-main"><h1>Patient</h1></div>
+      <div class="container app-main">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="#/patients">Patients</a>
+          <svg class="icon" aria-hidden="true"><use href="#i-chevron-right"/></svg>
+          <span id="patient-crumb" aria-current="page"></span>
+        </nav>
+
+        <div id="patient-found">
+          <div class="page-head">
+            <div>
+              <h1 id="patient-title">Patient</h1>
+              <div class="page-meta" id="patient-meta"></div>
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="downloadReportPdf()">
+              <svg class="icon" aria-hidden="true"><use href="#i-download"/></svg>
+              Download report
+            </button>
+          </div>
+
+          <div class="stack">
+            <div class="vitals-grid" id="patient-vitals"></div>
+            <div class="patient-grid">
+              <div class="card" id="patient-ecg"></div>
+              <div class="stack">
+                <div class="card" id="patient-contact"></div>
+                <div class="card" id="patient-summary"></div>
+              </div>
+            </div>
+            <div class="card" id="patient-readings"></div>
+          </div>
+        </div>
+
+        <div class="card" id="patient-missing" hidden>
+          <div class="empty-state">
+            <div class="empty-icon"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg></div>
+            <h2 class="h3">Patient not found</h2>
+            <p id="patient-missing-text"></p>
+            <a class="btn btn-secondary btn-sm empty-action" href="#/patients"><svg class="icon" aria-hidden="true"><use href="#i-chevron-left"/></svg>Back to patients</a>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section class="page" data-page="settings" hidden>
