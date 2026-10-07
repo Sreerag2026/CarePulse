@@ -245,6 +245,51 @@ async function renderRoute(){
 
 window.addEventListener('hashchange', renderRoute);
 
+// ---------------- Public navigation ----------------
+const navToggle = document.querySelector('.nav-toggle');
+const siteMenu = document.getElementById('site-menu');
+let pendingSectionScroll = null;
+
+function setMenuOpen(open){
+  siteMenu.classList.toggle('open', open);
+  navToggle.setAttribute('aria-expanded', String(open));
+  navToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+  navToggle.querySelector('use').setAttribute('href', open ? '#i-x' : '#i-menu');
+}
+
+navToggle.addEventListener('click', () => setMenuOpen(!siteMenu.classList.contains('open')));
+window.addEventListener('hashchange', () => setMenuOpen(false));
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && siteMenu.classList.contains('open')){
+    setMenuOpen(false);
+    navToggle.focus();
+  }
+});
+
+// Section links (Features, How it works, …) scroll on the home page without changing the route.
+document.addEventListener('click', (event) => {
+  const link = event.target.closest('[data-scroll]');
+  if (!link) return;
+  event.preventDefault();
+  setMenuOpen(false);
+
+  if (Core.parseRoute(location.hash).name === 'home'){
+    document.getElementById(link.dataset.scroll).scrollIntoView({ block: 'start' });
+  } else {
+    pendingSectionScroll = link.dataset.scroll;
+    navigate('#/');
+  }
+});
+
+registerPage('home', {
+  render(){
+    if (!pendingSectionScroll) return;
+    const target = document.getElementById(pendingSectionScroll);
+    pendingSectionScroll = null;
+    requestAnimationFrame(() => target.scrollIntoView({ block: 'start' }));
+  }
+});
+
 // ---------------- PDF report ----------------
 function downloadReportPdf(){
   try {

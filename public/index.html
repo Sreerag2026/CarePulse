@@ -57,10 +57,23 @@
   <header class="site-nav" hidden>
     <div class="container nav-inner">
       <a class="brand" href="#/"><img src="icon.png" alt="" width="30" height="30">CarePulse</a>
+      <nav class="nav-links" id="site-menu" aria-label="Main">
+        <a href="#/" data-scroll="features">Features</a>
+        <a href="#/" data-scroll="how-it-works">How it works</a>
+        <a href="#/" data-scroll="security">Security</a>
+        <a href="#/" data-scroll="team">Team</a>
+        <div class="nav-menu-actions">
+          <a class="btn btn-secondary" href="#/login">Log in</a>
+          <a class="btn btn-primary" href="#/register">Get started</a>
+        </div>
+      </nav>
       <div class="nav-spacer"></div>
       <a class="icon-btn" href="#/settings" aria-label="Settings" title="Settings"><svg class="icon" aria-hidden="true"><use href="#i-settings"/></svg></a>
-      <a class="btn btn-ghost btn-sm" href="#/login">Log in</a>
-      <a class="btn btn-primary btn-sm" href="#/register">Get started</a>
+      <a class="btn btn-ghost btn-sm nav-desktop-only" href="#/login">Log in</a>
+      <a class="btn btn-primary btn-sm nav-desktop-only" href="#/register">Get started</a>
+      <button type="button" class="icon-btn nav-toggle" aria-controls="site-menu" aria-expanded="false" aria-label="Open menu">
+        <svg class="icon" aria-hidden="true"><use href="#i-menu"/></svg>
+      </button>
     </div>
   </header>
 
@@ -79,7 +92,153 @@
 
   <main id="app">
     <section class="page" data-page="home" hidden>
-      <div class="container app-main"><h1>CarePulse</h1></div>
+      <!-- Hero -->
+      <div class="hero">
+        <div class="container hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">Remote patient monitoring</p>
+            <h1 class="display">Continuous care, visible to the people who matter</h1>
+            <p class="hero-sub">Live vitals for parents. A clear patient list for doctors.</p>
+            <div class="hero-actions">
+              <a class="btn btn-primary btn-lg" href="#/login">Parent portal <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
+              <a class="btn btn-secondary btn-lg" href="#/login/doctor">Doctor portal</a>
+            </div>
+          </div>
+
+          <div class="preview card" aria-label="Dashboard preview with sample data">
+            <div class="preview-head">
+              <div>
+                <p class="preview-name">Patient overview</p>
+                <p class="text-caption">Updated just now</p>
+              </div>
+              <span class="badge badge-neutral">Sample data</span>
+            </div>
+            <div class="preview-vitals">
+              <div class="vital-tile"><svg class="icon" aria-hidden="true"><use href="#i-heart"/></svg><span class="vital-tile-label">Heart rate</span><span class="vital-value">92 <small>bpm</small></span></div>
+              <div class="vital-tile"><svg class="icon" aria-hidden="true"><use href="#i-droplet"/></svg><span class="vital-tile-label">SpO₂</span><span class="vital-value">98 <small>%</small></span></div>
+              <div class="vital-tile"><svg class="icon" aria-hidden="true"><use href="#i-thermometer"/></svg><span class="vital-tile-label">Temperature</span><span class="vital-value">36.8 <small>°</small></span></div>
+              <div class="vital-tile"><svg class="icon" aria-hidden="true"><use href="#i-gauge"/></svg><span class="vital-tile-label">Blood pressure</span><span class="vital-value">110/70</span></div>
+            </div>
+            <div class="ecg-panel">
+              <svg class="ecg-line" viewBox="0 0 500 100" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M 0 50 L 30 50 L 40 30 L 50 70 L 60 10 L 70 90 L 80 50 L 120 50 L 130 30 L 140 70 L 150 10 L 160 90 L 170 50 L 210 50 L 220 30 L 230 70 L 240 10 L 250 90 L 260 50 L 300 50 L 310 30 L 320 70 L 330 10 L 340 90 L 350 50 L 390 50 L 400 30 L 410 70 L 420 10 L 430 90 L 440 50 L 500 50"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Features -->
+      <div class="section section-alt" id="features">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">Features</p>
+            <h2 class="section-title">Everything a family and a care team need</h2>
+          </div>
+          <div class="feature-grid">
+            <article class="feature card">
+              <span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-activity"/></svg></span>
+              <h3>Live vitals</h3>
+              <p>Heart rate, oxygen, temperature and blood pressure from the monitoring device, as they arrive.</p>
+            </article>
+            <article class="feature card">
+              <span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-users"/></svg></span>
+              <h3>Doctor dashboard</h3>
+              <p>Every patient in one searchable list, with their latest readings at a glance.</p>
+            </article>
+            <article class="feature card">
+              <span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-file"/></svg></span>
+              <h3>One-click PDF reports</h3>
+              <p>Download a clean summary of a patient's readings to share or print.</p>
+            </article>
+            <article class="feature card">
+              <span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg></span>
+              <h3>Private and secure</h3>
+              <p>Parents see only their own child. Doctors need a hospital registration code.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+
+      <!-- How it works -->
+      <div class="section" id="how-it-works">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">How it works</p>
+            <h2 class="section-title">From sign-up to live readings in three steps</h2>
+          </div>
+          <ol class="steps">
+            <li class="step">
+              <span class="step-number">1</span>
+              <h3>Register your child</h3>
+              <p>Create a parent account with your child's details. You'll get a Patient ID.</p>
+            </li>
+            <li class="step">
+              <span class="step-number">2</span>
+              <h3>The device sends readings</h3>
+              <p>The monitoring device sends heart rate, SpO₂, temperature and blood pressure to CarePulse.</p>
+            </li>
+            <li class="step">
+              <span class="step-number">3</span>
+              <h3>Parents and doctors see updates</h3>
+              <p>Parents follow their child's vitals. Doctors review every patient and download reports.</p>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- Security -->
+      <div class="section section-alt" id="security">
+        <div class="container security-grid">
+          <div>
+            <p class="eyebrow">Security and privacy</p>
+            <h2 class="section-title">Medical data deserves care</h2>
+            <p class="section-lead">Here's how CarePulse protects the information you share with it.</p>
+          </div>
+          <ul class="security-list card">
+            <li><span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-lock"/></svg></span><div><h3>Passwords are never stored in plain text</h3><p>They're hashed with bcrypt before they're saved.</p></div></li>
+            <li><span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-users"/></svg></span><div><h3>Parents see only their own child</h3><p>Each parent account can open one patient's records and no one else's.</p></div></li>
+            <li><span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-stethoscope"/></svg></span><div><h3>Doctor accounts need a registration code</h3><p>Only people with the hospital's code can create a doctor account.</p></div></li>
+            <li><span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg></span><div><h3>Sign-ins expire automatically</h3><p>Every session is a signed token that expires after 12 hours.</p></div></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Team -->
+      <div class="section" id="team">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">Team</p>
+            <h2 class="section-title">The people behind CarePulse</h2>
+            <!-- TEAM-PLACEHOLDER: college or organisation name -->
+            <p class="section-lead">College or organisation name</p>
+          </div>
+          <div class="team-grid">
+            <!-- TEAM-PLACEHOLDER: team member 1 (initials, name, role) -->
+            <article class="team-card card"><span class="avatar">TM</span><h3>Team member name</h3><p>Role</p></article>
+            <!-- TEAM-PLACEHOLDER: team member 2 (initials, name, role) -->
+            <article class="team-card card"><span class="avatar">TM</span><h3>Team member name</h3><p>Role</p></article>
+            <!-- TEAM-PLACEHOLDER: team member 3 (initials, name, role) -->
+            <article class="team-card card"><span class="avatar">TM</span><h3>Team member name</h3><p>Role</p></article>
+          </div>
+        </div>
+      </div>
+
+      <!-- Closing call to action -->
+      <div class="section section-tight">
+        <div class="container">
+          <div class="cta-band">
+            <div>
+              <h2>Ready to get started?</h2>
+              <p>Create a parent account in a couple of minutes, or sign in as a doctor.</p>
+            </div>
+            <div class="cta-actions">
+              <a class="btn btn-lg btn-on-primary" href="#/register">Register as a parent</a>
+              <a class="btn btn-lg btn-outline-on-primary" href="#/login/doctor">Doctor sign in</a>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section class="page" data-page="login" hidden>
@@ -112,8 +271,34 @@
   </main>
 
   <footer class="site-footer" hidden>
-    <div class="container">
-      <p class="text-caption">© 2026 CarePulse</p>
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <a class="brand" href="#/"><img src="icon.png" alt="" width="30" height="30">CarePulse</a>
+        <p>Remote patient monitoring for families and care teams.</p>
+      </div>
+      <div>
+        <h3 class="footer-title">Product</h3>
+        <a href="#/" data-scroll="features">Features</a>
+        <a href="#/" data-scroll="how-it-works">How it works</a>
+        <a href="#/" data-scroll="security">Security</a>
+        <a href="#/" data-scroll="team">Team</a>
+      </div>
+      <div>
+        <h3 class="footer-title">Portals</h3>
+        <a href="#/login">Parent sign in</a>
+        <a href="#/login/doctor">Doctor sign in</a>
+        <a href="#/register">Create an account</a>
+        <a href="#/settings">Settings</a>
+      </div>
+      <div>
+        <h3 class="footer-title">Contact</h3>
+        <!-- TEAM-PLACEHOLDER: contact email -->
+        <a href="mailto:hello@carepulse.example">hello@carepulse.example</a>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <p>© 2026 CarePulse</p>
+      <p>Not a substitute for professional medical advice.</p>
     </div>
   </footer>
 
