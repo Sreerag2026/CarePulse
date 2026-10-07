@@ -13,6 +13,30 @@ npm run dev
 
 Open http://localhost:3000.
 
+## Project structure
+
+| Path | What's in it |
+| --- | --- |
+| `server.js` | Express server: the API and static hosting of `public/` |
+| `public/index.html` | Page markup: home page, sign-in and registration, dashboards, settings |
+| `public/styles.css` | Design tokens (light and dark themes), components and page styles |
+| `public/core.js` | Pure helpers: page addresses, login checks, formatting, patient search |
+| `public/app.js` | Router, API calls, session, page rendering and the PDF report |
+| `scripts/create-doctor.js` | Command-line doctor account creation |
+| `tests/` | Unit tests for `core.js` and a contrast check for the colour tokens |
+
+Pages use addresses like `#/login`, `#/dashboard` and `#/patients/CP123456`. Back, Forward and
+refresh all work.
+
+## Tests
+
+```bash
+npm test
+```
+
+This runs the `core.js` unit tests, and checks that every text colour stays readable (contrast
+of at least 4.5:1) in both light and dark mode.
+
 ## Deploy on Render
 
 Step-by-step guide covering MongoDB Atlas, Render settings and a custom www domain: [DEPLOY.md](DEPLOY.md).
