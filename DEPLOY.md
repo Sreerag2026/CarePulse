@@ -57,6 +57,7 @@ Copy the 64-character output. Keep it private; anyone who has it can forge login
    | --- | --- |
    | `MONGO_URI` | connection string from step 1 |
    | `AUTH_SECRET` | value from step 2 |
+   | `DOCTOR_SIGNUP_CODE` | code doctors enter to register (see step 6) |
    | `DEVICE_API_KEY` | *(optional)* a secret the monitoring device sends when posting readings |
 
    Leave `PORT` as it is. Render handles it.
@@ -96,10 +97,25 @@ click **Manual Deploy → Deploy latest commit**.
 
 The free plan sleeps after inactivity, so the first visit can take up to a minute.
 
-## 6. Create a doctor account
+## 6. Doctor accounts
 
-Render's Shell isn't available on the free plan, so run this on your own computer, pointed at the
-same Atlas database. Add this line to your local `.env`:
+Doctor accounts can see every patient, so doctors need a **registration code** to sign up.
+
+1. Generate a code:
+
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(6).toString('hex'))"
+   ```
+
+2. **Render → CarePulse → Environment → Edit** → add `DOCTOR_SIGNUP_CODE` with that value → **Save, rebuild, and deploy**.
+3. Give the code only to real doctors. They register on the website under **Doctor Login → New doctor? Register**.
+4. To stop new doctor sign-ups, delete the variable or change the code. Existing doctors can still log in.
+
+Until `DOCTOR_SIGNUP_CODE` is set, the registration page says "Doctor registration is closed".
+
+**From the command line instead.** This also resets a forgotten doctor password. Render's Shell
+isn't available on the free plan, so run it on your own computer, pointed at the same Atlas
+database. Add this line to your local `.env`:
 
 ```
 MONGO_URI=<same connection string as on Render>
@@ -111,8 +127,6 @@ Then run:
 npm install
 npm run create-doctor -- HOSP-2291 DR-0148 "a-strong-password" "Dr. Priya Nair"
 ```
-
-Doctors log in with that hospital ID, doctor ID and password.
 
 ## 7. Optional: your own www domain
 

@@ -23,6 +23,9 @@ const TOKEN_TTL_MS = 12 * 60 * 60 * 1000;
 // Optional shared key for monitoring devices that post health readings.
 const DEVICE_API_KEY = process.env.DEVICE_API_KEY;
 
+// Code doctors must enter to register on the website. Unset = doctor registration is closed.
+const DOCTOR_SIGNUP_CODE = (process.env.DOCTOR_SIGNUP_CODE || "").trim();
+
 // Keeps each patient document well under MongoDB's 16 MB limit.
 const MAX_STORED_READINGS = 1000;
 
@@ -360,6 +363,54 @@ app.post("/api/doctor-login", async (req, res) => {
 });
 
 // ===============================
+// DOCTOR REGISTRATION
+// ===============================
+
+app.post("/api/doctor-register", async (req, res) => {
+  if (!DOCTOR_SIGNUP_CODE) {
+    return res.status(403).json({
+      message: "Doctor registration is closed. Ask your hospital administrator for an account."
+    });
+  }
+
+  // Check the code before anything else, so people without it learn nothing about accounts.
+  if (!safeEqual(cleanString(req.body.signupCode, 200), DOCTOR_SIGNUP_CODE)) {
+    return res.status(403).json({ message: "Invalid registration code." });
+  }
+
+  const hospitalId = cleanString(req.body.hospitalId, 50);
+  const doctorId = cleanString(req.body.doctorId, 50);
+  const doctorName = cleanString(req.body.doctorName, 100);
+  const password = typeof req.body.password === "string" ? req.body.password : "";
+
+  if (!hospitalId || !doctorId || !doctorName) {
+    return badRequest(res, "Hospital ID, doctor ID and name are required.");
+  }
+  if (password.length < 8) return badRequest(res, "Password must contain at least 8 characters.");
+
+  const existing = await db
+    .collection("doctors")
+    .findOne({ hospitalId, doctorId }, { collation: CASE_INSENSITIVE, projection: { _id: 1 } });
+
+  if (existing) {
+    return res.status(409).json({ message: "This doctor ID is already registered at this hospital." });
+  }
+
+  // Same shape as scripts/create-doctor.js, so both ways of creating doctors stay compatible.
+  const now = new Date();
+  await db.collection("doctors").insertOne({
+    hospitalId,
+    doctorId,
+    doctorName,
+    password: await bcrypt.hash(password, 10),
+    createdAt: now,
+    updatedAt: now
+  });
+
+  res.status(201).json({ message: "Doctor registration successful", hospitalId, doctorId });
+});
+
+// ===============================
 // GET ALL PATIENTS (doctors only)
 // ===============================
 
@@ -604,6 +655,9 @@ if (!process.env.AUTH_SECRET) {
 }
 if (!DEVICE_API_KEY) {
   console.warn("⚠️  DEVICE_API_KEY is not set. Anyone can post health readings.");
+}
+if (!DOCTOR_SIGNUP_CODE) {
+  console.log("ℹ️  DOCTOR_SIGNUP_CODE is not set, so doctor registration on the website is closed.");
 }
 
 if (MONGO_URI) {
