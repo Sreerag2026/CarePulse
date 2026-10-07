@@ -83,6 +83,13 @@
       <a class="brand" id="app-home-link" href="#/"><img src="icon.png" alt="" width="30" height="30">CarePulse</a>
       <div class="nav-spacer"></div>
       <a class="icon-btn" href="#/settings" aria-label="Settings" title="Settings"><svg class="icon" aria-hidden="true"><use href="#i-settings"/></svg></a>
+      <div class="user-chip">
+        <span class="avatar avatar-sm" id="user-initials" aria-hidden="true">?</span>
+        <span class="user-chip-text">
+          <span class="user-chip-name" id="user-name"></span>
+          <span class="user-chip-role" id="user-role"></span>
+        </span>
+      </div>
       <button type="button" class="btn btn-secondary btn-sm" onclick="logout()">
         <svg class="icon" aria-hidden="true"><use href="#i-log-out"/></svg>
         Log out
@@ -481,7 +488,35 @@
     </template>
 
     <section class="page" data-page="dashboard" hidden>
-      <div class="container app-main"><h1>Dashboard</h1></div>
+      <div class="container app-main">
+        <div class="page-head">
+          <div>
+            <h1 id="dash-title">Your child's health</h1>
+            <div class="page-meta">
+              <span class="badge badge-neutral" id="dash-patient-id"></span>
+              <span class="badge" id="dash-status"></span>
+            </div>
+          </div>
+          <button type="button" class="btn btn-secondary" id="dash-download" onclick="downloadReportPdf()">
+            <svg class="icon" aria-hidden="true"><use href="#i-download"/></svg>
+            Download report
+          </button>
+        </div>
+
+        <div class="stack" id="dash-body">
+          <div class="vitals-grid" id="dash-vitals"></div>
+          <div class="card" id="dash-ecg"></div>
+          <div class="card" id="dash-readings"></div>
+        </div>
+
+        <div class="card" id="dash-empty" hidden>
+          <div class="empty-state">
+            <div class="empty-icon"><svg class="icon" aria-hidden="true"><use href="#i-user-plus"/></svg></div>
+            <h3>No patient is linked to this account yet</h3>
+            <p>Contact your care team to link your child's record to this account.</p>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section class="page" data-page="patients" hidden>

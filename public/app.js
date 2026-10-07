@@ -227,6 +227,7 @@ async function renderRoute(){
   document.querySelector('.app-header').hidden = !inApp;
   document.querySelector('.site-footer').hidden = route.name !== 'home';
   document.getElementById('app-home-link').setAttribute('href', session.role === 'doctor' ? '#/patients' : '#/dashboard');
+  if (inApp) renderAppHeader(session);
 
   document.title = PAGE_TITLES[route.name] ? `${PAGE_TITLES[route.name]} · CarePulse` : 'CarePulse';
   window.scrollTo(0, 0);
@@ -511,6 +512,183 @@ onSubmit('reset-form', async (form) => {
   dobInput.addEventListener('change', updateAge);
   dobInput.addEventListener('input', updateAge);
 })();
+
+// ---------------- DOM helpers ----------------
+// Builds an element with text set via textContent, so names typed by users can never become HTML.
+function el(tag, className, text){
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined && text !== null) node.textContent = text;
+  return node;
+}
+
+function iconEl(name){
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'icon');
+  svg.setAttribute('aria-hidden', 'true');
+  const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+  use.setAttribute('href', `#i-${name}`);
+  svg.appendChild(use);
+  return svg;
+}
+
+function cardHead(title, iconName, note){
+  const head = el('div', 'card-head');
+  const titleEl = el('h2', 'card-title');
+  titleEl.append(iconEl(iconName), title);
+  head.appendChild(titleEl);
+  if (note) head.appendChild(el('span', 'text-caption', note));
+  return head;
+}
+
+function formatDateTime(value){
+  return new Date(value).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
+function renderStatusBadge(badge, status){
+  const active = !status || status.toLowerCase() === 'active';
+  badge.className = active ? 'badge badge-dot' : 'badge badge-neutral';
+  badge.textContent = `Monitoring ${(status || 'Active').toLowerCase()}`;
+}
+
+// ---------------- App header ----------------
+function renderAppHeader(session){
+  const name = session.role === 'doctor' ? (session.doctorName || 'Doctor') : (session.parentName || 'Parent');
+  document.getElementById('user-initials').textContent = Core.initials(name);
+  document.getElementById('user-name').textContent = name;
+  document.getElementById('user-name').title = name;
+  document.getElementById('user-role').textContent = session.role === 'doctor' ? 'Doctor' : 'Parent';
+}
+
+// ---------------- Shared patient blocks (parent dashboard and doctor's patient page) ----------------
+const VITALS = [
+  { key: 'heartRate', label: 'Heart rate', unit: 'bpm', icon: 'heart' },
+  { key: 'oxygenLevel', label: 'Oxygen (SpO₂)', unit: '%', icon: 'droplet' },
+  { key: 'temperature', label: 'Temperature', unit: '°', icon: 'thermometer' },
+  { key: 'bloodPressure', label: 'Blood pressure', unit: 'mmHg', icon: 'gauge' }
+];
+
+// patient === null renders the loading state.
+function renderVitalCards(container, patient){
+  container.replaceChildren(...VITALS.map(vital => {
+    const card = el('div', 'card vital-card');
+    const icon = el('span', 'vital-icon');
+    icon.appendChild(iconEl(vital.icon));
+    const value = el('div', 'vital-card-value vital-value');
+
+    if (!patient){
+      value.textContent = 'Loading…';
+      value.classList.add('is-loading');
+    } else if (Core.hasValue(patient[vital.key])){
+      value.append(String(patient[vital.key]), el('small', null, vital.unit));
+    } else {
+      value.textContent = '—';
+    }
+
+    card.append(icon, el('span', 'vital-card-label', vital.label), value);
+    return card;
+  }));
+}
+
+function renderEcgCard(container, patient){
+  const note = patient && Core.hasValue(patient.heartRate) ? `Latest heart rate: ${patient.heartRate} bpm` : 'Illustrative waveform';
+  const panel = el('div', 'ecg-panel ecg-panel-large');
+  panel.innerHTML = '<svg class="ecg-line" viewBox="0 0 500 100" preserveAspectRatio="none" aria-hidden="true"><path d="M 0 50 L 30 50 L 40 30 L 50 70 L 60 10 L 70 90 L 80 50 L 120 50 L 130 30 L 140 70 L 150 10 L 160 90 L 170 50 L 210 50 L 220 30 L 230 70 L 240 10 L 250 90 L 260 50 L 300 50 L 310 30 L 320 70 L 330 10 L 340 90 L 350 50 L 390 50 L 400 30 L 410 70 L 420 10 L 430 90 L 440 50 L 500 50"/></svg>';
+  container.replaceChildren(cardHead('ECG', 'activity', note), panel);
+}
+
+// patient === null renders the loading state.
+function renderReadingsTable(container, patient){
+  const when = Core.lastReadingTime(patient);
+  const head = cardHead('Recent readings', 'clock', when ? `Last reading ${formatDateTime(when)}` : null);
+
+  if (!patient){
+    container.replaceChildren(head, el('p', 'is-loading', 'Loading readings…'));
+    return;
+  }
+
+  const readings = Core.recentReadings(patient, 10);
+  if (!readings.length){
+    const empty = el('div', 'empty-state');
+    const icon = el('div', 'empty-icon');
+    icon.appendChild(iconEl('activity'));
+    empty.append(icon, el('h3', null, 'Waiting for the first reading from the monitoring device.'),
+      el('p', null, 'Readings appear here as soon as the device sends them.'));
+    container.replaceChildren(head, empty);
+    return;
+  }
+
+  const table = el('table', 'table');
+  const headRow = el('tr');
+  ['Time', 'Heart rate', 'SpO₂', 'Temperature', 'Blood pressure'].forEach(label => headRow.appendChild(el('th', null, label)));
+  table.appendChild(el('thead')).appendChild(headRow);
+
+  const body = el('tbody');
+  readings.forEach(reading => {
+    const row = el('tr');
+    row.append(
+      el('td', null, reading.recordedAt ? formatDateTime(reading.recordedAt) : '—'),
+      el('td', null, Core.formatVital(reading.heartRate, ' bpm')),
+      el('td', null, Core.formatVital(reading.oxygenLevel, '%')),
+      el('td', null, Core.formatVital(reading.temperature, '°')),
+      el('td', null, Core.formatVital(reading.bloodPressure, ' mmHg'))
+    );
+    body.appendChild(row);
+  });
+  table.appendChild(body);
+
+  const wrap = el('div', 'table-wrap');
+  wrap.appendChild(table);
+  container.replaceChildren(head, wrap);
+}
+
+// ---------------- Parent dashboard ----------------
+registerPage('dashboard', {
+  async render(){
+    const session = getSession();
+    const body = document.getElementById('dash-body');
+    const empty = document.getElementById('dash-empty');
+    const download = document.getElementById('dash-download');
+    const title = document.getElementById('dash-title');
+    const idBadge = document.getElementById('dash-patient-id');
+    const statusBadge = document.getElementById('dash-status');
+
+    // Older accounts can exist without a linked patient record.
+    if (!session.patientId){
+      title.textContent = `Welcome, ${session.parentName || 'there'}`;
+      idBadge.hidden = statusBadge.hidden = download.hidden = body.hidden = true;
+      empty.hidden = false;
+      return;
+    }
+
+    empty.hidden = true;
+    body.hidden = download.hidden = idBadge.hidden = false;
+    statusBadge.hidden = true;
+    title.textContent = `${session.patientName || 'Your child'}'s health`;
+    idBadge.textContent = `Patient ID ${session.patientId}`;
+    renderVitalCards(document.getElementById('dash-vitals'), null);
+    renderEcgCard(document.getElementById('dash-ecg'), null);
+    renderReadingsTable(document.getElementById('dash-readings'), null);
+
+    try {
+      const patient = await api(`/api/patient/${encodeURIComponent(session.patientId)}`);
+      setCurrentReportPatient(patient);
+      title.textContent = `${patient.patientName || 'Your child'}'s health`;
+      renderStatusBadge(statusBadge, patient.monitoringStatus);
+      statusBadge.hidden = false;
+      renderVitalCards(document.getElementById('dash-vitals'), patient);
+      renderEcgCard(document.getElementById('dash-ecg'), patient);
+      renderReadingsTable(document.getElementById('dash-readings'), patient);
+    } catch (error){
+      console.error(error);
+      if (error.handled) return;
+      renderVitalCards(document.getElementById('dash-vitals'), {});
+      const readings = document.getElementById('dash-readings');
+      readings.replaceChildren(cardHead('Recent readings', 'clock'), el('p', 'text-muted', "Couldn't load the latest readings. Refresh the page to try again."));
+      showToast(error.message, 'error', 6000);
+    }
+  }
+});
 
 // ---------------- PDF report ----------------
 function downloadReportPdf(){

@@ -109,6 +109,8 @@ h3, .h3{ font-size:16px; }
 a{ color:var(--primary-text); text-decoration:none; }
 a:hover{ text-decoration:underline; }
 img, svg{ display:block; }
+/* The hidden attribute must win over component display rules (.btn, .badge, .stack, …). */
+[hidden]{ display:none !important; }
 button{ font:inherit; color:inherit; }
 
 :focus-visible{ outline:2px solid var(--primary-text); outline-offset:2px; border-radius:4px; }
@@ -131,9 +133,9 @@ button{ font:inherit; color:inherit; }
 }
 
 /* ---------- Layout ---------- */
-.container{ width:100%; max-width:1160px; margin:0 auto; padding:0 24px; }
-.page[hidden]{ display:none !important; }
-.app-main{ padding:32px 0 64px; }
+/* Side padding and vertical padding use separate properties so .container and .app-main can share an element. */
+.container{ width:100%; max-width:1160px; margin:0 auto; padding-left:24px; padding-right:24px; }
+.app-main{ padding-top:32px; padding-bottom:64px; }
 .page-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:24px; }
 .page-head p{ color:var(--text-muted); margin-top:4px; }
 .stack{ display:flex; flex-direction:column; gap:16px; }
@@ -148,9 +150,6 @@ button{ font:inherit; color:inherit; }
   border-bottom:1px solid var(--border);
   box-shadow:var(--shadow-sm);
 }
-.site-nav[hidden],
-.app-header[hidden],
-.site-footer[hidden]{ display:none; }
 
 .nav-inner{ height:var(--nav-height); display:flex; align-items:center; gap:24px; }
 .brand{
@@ -577,13 +576,67 @@ button{ font:inherit; color:inherit; }
 .label-row{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
 .label-row a{ font-size:14px; font-weight:500; }
 form .btn-block{ margin-top:8px; }
-[data-role-form][hidden]{ display:none; }
 .back-link{ display:inline-flex; align-items:center; gap:4px; font-size:14px; font-weight:500; margin-bottom:20px; }
 
 @media (max-width:899px){
   .auth-layout{ grid-template-columns:1fr; min-height:0; }
   .auth-brand{ display:none; }
   .auth-main{ padding:32px 16px 56px; }
+}
+
+/* ---------- App header ---------- */
+.user-chip{ display:flex; align-items:center; gap:10px; min-width:0; padding:0 4px; }
+.avatar-sm{ width:34px; height:34px; font-size:13px; margin:0; flex:0 0 auto; }
+.user-chip-text{ display:flex; flex-direction:column; min-width:0; line-height:1.25; }
+.user-chip-name{ font-size:14px; font-weight:600; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.user-chip-role{ font-size:12px; color:var(--text-faint); }
+
+/* ---------- Dashboard blocks ---------- */
+.page-meta{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.page-head h1{ overflow-wrap:anywhere; }
+
+.vitals-grid{ display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:16px; }
+.vital-card{ display:flex; flex-direction:column; gap:12px; }
+.vital-card .vital-icon{
+  width:40px;
+  height:40px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:10px;
+  background:var(--badge-bg);
+  color:var(--badge-text);
+}
+.vital-card .vital-icon .icon{ width:20px; height:20px; }
+.vital-card-label{ font-size:14px; color:var(--text-muted); }
+.vital-card-value{ font-size:28px; font-weight:600; line-height:1.1; letter-spacing:-0.01em; }
+.vital-card-value small{ font-size:14px; font-weight:500; color:var(--text-faint); margin-left:2px; }
+.is-loading{ color:var(--text-faint); font-weight:500; }
+.ecg-panel-large{ height:140px; }
+.card-head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+.card-head .card-title{ margin-bottom:0; }
+.card .table-wrap{ margin:0 -24px -24px; }
+.card .table th:first-child,
+.card .table td:first-child{ padding-left:24px; }
+.card .table th:last-child,
+.card .table td:last-child{ padding-right:24px; }
+
+@media (max-width:1023px){
+  .vitals-grid{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width:480px){
+  .user-chip{ display:none; }
+}
+
+@media (max-width:640px){
+  .nav-inner{ gap:8px; }
+  .user-chip-text{ display:none; }
+  .vitals-grid{ gap:12px; }
+  .vital-card{ padding:16px; }
+  .vital-card-value{ font-size:22px; }
+  .card .table-wrap{ margin:0 -20px -20px; }
+  .page-head .btn{ width:100%; }
 }
 
 /* ---------- Footer ---------- */
@@ -633,7 +686,7 @@ form .btn-block{ margin-top:8px; }
 }
 
 @media (max-width:640px){
-  .container{ padding:0 16px; }
+  .container{ padding-left:16px; padding-right:16px; }
   .display{ font-size:32px; }
   h1, .h1{ font-size:24px; }
   .field-row{ grid-template-columns:1fr; }
