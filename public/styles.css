@@ -498,7 +498,7 @@ button{ font:inherit; color:inherit; }
 .security-list h3{ margin-bottom:2px; }
 .security-list p{ color:var(--text-muted); font-size:15px; }
 
-.team-grid{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:20px; max-width:880px; margin:0 auto; }
+.team-grid{ display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:20px; max-width:1040px; margin:0 auto; }
 .team-card{ text-align:center; }
 .team-card h3{ margin-top:14px; }
 .team-card p{ color:var(--text-muted); font-size:15px; }
@@ -757,7 +757,8 @@ button.back-link:hover{ text-decoration:underline; }
 }
 
 @media (max-width:1023px){
-  .feature-grid{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
+  .feature-grid,
+  .team-grid{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
   .hero-grid,
   .security-grid{ grid-template-columns:1fr; gap:40px; }
   .footer-grid{ grid-template-columns:repeat(3, minmax(0, 1fr)); }
