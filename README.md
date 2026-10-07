@@ -24,6 +24,8 @@ Step-by-step guide covering MongoDB Atlas, Render settings and a custom www doma
     Database Access), not the Atlas account password. URL-encode special characters in the
     password (`@` → `%40`, `#` → `%23`, `%` → `%25`).
   - `AUTH_SECRET`: any long random string. Without it, everyone is logged out on every restart.
+  - `DOCTOR_SIGNUP_CODE`: the code doctors enter to register on the website. If it's unset,
+    doctor registration is closed.
   - `DEVICE_API_KEY` (optional): required in the `x-device-key` header when a device posts readings.
 
 In MongoDB Atlas → Network Access, allow `0.0.0.0/0`, because Render's outgoing IP addresses change.
@@ -34,14 +36,17 @@ or password. The website still loads in that state, but logins and registration 
 
 ## Doctor accounts
 
-Doctors can't sign up from the website. Create them from a machine whose `.env` points at the
-same database:
+Doctor accounts can see every patient, so only people with the registration code can create one.
 
-```bash
-npm run create-doctor -- HOSP-2291 DR-0148 "a-strong-password" "Dr. Priya Nair"
-```
+- **On the website:** Doctor Login → **New doctor? Register**, then enter the code from
+  `DOCTOR_SIGNUP_CODE`. Give the code only to real doctors. To stop new sign-ups, remove the
+  variable or change it.
+- **From the command line** (also resets a doctor's password), on a machine whose `.env` points at
+  the same database:
 
-Running it again with the same hospital and doctor ID resets that doctor's password.
+  ```bash
+  npm run create-doctor -- HOSP-2291 DR-0148 "a-strong-password" "Dr. Priya Nair"
+  ```
 
 ## API
 
@@ -51,6 +56,7 @@ Running it again with the same hospital and doctor ID resets that doctor's passw
 | POST | `/api/register` | anyone |
 | POST | `/api/parent-login` | anyone, returns a token |
 | POST | `/api/reset-password` | anyone, with email + phone + patient ID |
+| POST | `/api/doctor-register` | anyone with the `DOCTOR_SIGNUP_CODE` |
 | POST | `/api/doctor-login` | anyone, returns a token |
 | GET | `/api/patients` | doctor |
 | GET | `/api/patient/:patientId` | doctor, or that patient's parent |

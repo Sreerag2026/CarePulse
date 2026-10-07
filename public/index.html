@@ -641,6 +641,7 @@
           <div class="field-msg"></div>
         </div>
         <button class="btn btn-primary" data-primary onclick="doctorLogin(this)">Log in</button>
+        <button type="button" class="link-bold" onclick="navigateTo('screen-doctor-registration')">New doctor? <span>Register</span></button>
       </div>
       <div class="bottom-group">
         <button class="btn btn-back" onclick="goBack()">
@@ -839,6 +840,53 @@
           <div class="field-msg"></div>
         </div>
         <button class="btn btn-primary" data-primary onclick="resetPassword(this)">Save new password</button>
+      </div>
+      <div class="bottom-group">
+        <button class="btn btn-back" onclick="goBack()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
+          Back
+        </button>
+      </div>
+    </div>
+
+    <!-- 11. DOCTOR REGISTRATION -->
+    <div id="screen-doctor-registration" class="screen" data-title="Doctor Registration">
+      <div class="screen-content">
+        <h1 class="page-title">Doctor Registration</h1>
+        <p class="helper-text form-intro">You'll need the registration code from your hospital administrator.</p>
+        <div class="field-row">
+          <div class="field">
+            <label for="dr-reg-hospital-id">Hospital ID</label>
+            <input type="text" id="dr-reg-hospital-id" class="input-field" data-validate="required" placeholder="e.g. HOSP-2291" autocomplete="organization">
+            <div class="field-msg"></div>
+          </div>
+          <div class="field">
+            <label for="dr-reg-doctor-id">Doctor ID</label>
+            <input type="text" id="dr-reg-doctor-id" class="input-field" data-validate="required" placeholder="e.g. DR-0148" autocomplete="username">
+            <div class="field-msg"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="dr-reg-name">Full name</label>
+          <input type="text" id="dr-reg-name" class="input-field" data-validate="required" placeholder="e.g. Dr. Priya Nair" autocomplete="name">
+          <div class="field-msg"></div>
+        </div>
+        <div class="field">
+          <label for="dr-reg-password">Password</label>
+          <input type="password" id="dr-reg-password" class="input-field" data-validate="password" placeholder="At least 8 characters" autocomplete="new-password">
+          <div class="field-msg"></div>
+        </div>
+        <div class="field">
+          <label for="dr-reg-password-confirm">Confirm password</label>
+          <input type="password" id="dr-reg-password-confirm" class="input-field" data-validate="confirm" data-confirm-target="dr-reg-password" placeholder="Re-enter password" autocomplete="new-password">
+          <div class="field-msg"></div>
+        </div>
+        <div class="field">
+          <label for="dr-reg-code">Registration code</label>
+          <input type="password" id="dr-reg-code" class="input-field" data-validate="required" placeholder="From your hospital administrator" autocomplete="off">
+          <div class="field-msg"></div>
+        </div>
+        <button class="btn btn-pill" data-primary onclick="registerDoctor(this)">Register</button>
       </div>
       <div class="bottom-group">
         <button class="btn btn-back" onclick="goBack()">
@@ -1255,6 +1303,33 @@
     }
 
     // ---------------- Doctor flows ----------------
+    async function registerDoctor(button){
+      if (!validateScreen('screen-doctor-registration')) return;
+
+      const hospitalId = fieldValue('dr-reg-hospital-id');
+      const doctorId = fieldValue('dr-reg-doctor-id');
+
+      await withBusy(button, async () => {
+        const data = await api('/api/doctor-register', {
+          method: 'POST',
+          auth: false,
+          body: {
+            hospitalId,
+            doctorId,
+            doctorName: fieldValue('dr-reg-name'),
+            password: document.getElementById('dr-reg-password').value,
+            signupCode: fieldValue('dr-reg-code')
+          }
+        });
+
+        clearForm('screen-doctor-registration');
+        document.getElementById('doctor-hospital-id').value = data.hospitalId || hospitalId;
+        document.getElementById('doctor-id').value = data.doctorId || doctorId;
+        returnTo('screen-doctor-login');
+        showToast('Registration successful. You can log in now.', 'success');
+      });
+    }
+
     async function doctorLogin(button){
       if (!validateScreen('screen-doctor-login')) return;
 
