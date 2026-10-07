@@ -595,7 +595,32 @@
     </section>
 
     <section class="page" data-page="settings" hidden>
-      <div class="container app-main"><h1>Settings</h1></div>
+      <div class="container app-main settings-main">
+        <button type="button" class="back-link" id="settings-back"><svg class="icon" aria-hidden="true"><use href="#i-chevron-left"/></svg>Back</button>
+        <h1>Settings</h1>
+        <p class="page-sub">Choose how CarePulse looks on this device.</p>
+
+        <div class="card">
+          <h2 class="card-title"><svg class="icon" aria-hidden="true"><use href="#i-settings"/></svg>Appearance</h2>
+          <div class="theme-options" role="radiogroup" aria-label="Theme">
+            <label class="theme-option">
+              <input type="radio" name="theme" value="light">
+              <span class="theme-swatch swatch-light" aria-hidden="true"></span>
+              <span><span class="theme-option-title">Light</span><span class="theme-option-hint">Bright background</span></span>
+            </label>
+            <label class="theme-option">
+              <input type="radio" name="theme" value="dark">
+              <span class="theme-swatch swatch-dark" aria-hidden="true"></span>
+              <span><span class="theme-option-title">Dark</span><span class="theme-option-hint">Easier on the eyes at night</span></span>
+            </label>
+            <label class="theme-option">
+              <input type="radio" name="theme" value="system">
+              <span class="theme-swatch swatch-system" aria-hidden="true"></span>
+              <span><span class="theme-option-title">System</span><span class="theme-option-hint">Match this device's setting</span></span>
+            </label>
+          </div>
+        </div>
+      </div>
     </section>
   </main>
 

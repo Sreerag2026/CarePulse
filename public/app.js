@@ -197,6 +197,8 @@ const PAGE_TITLES = {
   settings: 'Settings'
 };
 let hasRendered = false;
+// Pages shown in this visit; Settings' Back button uses it to know whether there's somewhere to go back to.
+let renderedRoutes = 0;
 
 function registerPage(name, options = {}){
   pages[name] = options;
@@ -241,6 +243,7 @@ async function renderRoute(){
     if (hasRendered) heading.focus({ preventScroll: true });
   }
   hasRendered = true;
+  renderedRoutes += 1;
 
   const page = pages[route.name];
   if (page && page.render) await page.render(route.params);
@@ -901,6 +904,25 @@ registerPage('patient', {
     renderReadingsTable(document.getElementById('patient-readings'), patient);
     renderPatientContact(patient);
     renderPatientSummary(patient);
+  }
+});
+
+// ---------------- Settings ----------------
+document.querySelectorAll('input[name="theme"]').forEach(radio => {
+  radio.addEventListener('change', () => setThemePreference(radio.value));
+});
+
+document.getElementById('settings-back').addEventListener('click', () => {
+  // Opened from another page in this visit: go back there. Opened directly: go somewhere sensible.
+  if (renderedRoutes > 1) history.back();
+  else navigate(Core.guardRoute(Core.parseRoute('#/login'), getSession()).redirect || '#/');
+});
+
+registerPage('settings', {
+  render(){
+    document.querySelectorAll('input[name="theme"]').forEach(radio => {
+      radio.checked = radio.value === themePreference;
+    });
   }
 });
 
