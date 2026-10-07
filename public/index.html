@@ -11,8 +11,19 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  // Apply the saved theme before the page draws, so dark mode doesn't flash white.
+  (function(){
+    var preference = 'system';
+    try { preference = localStorage.getItem('carepulse-theme') || 'system'; } catch (e) {}
+    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var dark = preference === 'dark' || (preference === 'system' && prefersDark);
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  })();
+</script>
 <style>
   :root{
+    color-scheme:light;
     --ink:#12313B;
     --teal:#0F7A6C;
     --teal-dark:#0A5A50;
@@ -34,6 +45,68 @@
     --font-body:'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     --font-mono:'IBM Plex Mono', monospace;
     --shadow-card: 0 1px 2px rgba(18,49,59,0.06), 0 8px 24px rgba(18,49,59,0.06);
+
+    /* Surfaces and states that change between light and dark */
+    --page-glow-teal:rgba(15,122,108,0.10);
+    --page-glow-coral:rgba(232,115,79,0.08);
+    --frame-border:rgba(11,46,48,0.08);
+    --surface-hover:#E0EDE9;
+    --input-focus-bg:#FFFFFF;
+    --focus-ring:rgba(15,122,108,0.14);
+    --invalid-border:#E9B9B0;
+    --invalid-bg:#FDF6F4;
+    --invalid-ring:rgba(209,67,67,0.12);
+    --valid-bg:#F4FBF8;
+    --primary-bg:#0F7A6C;
+    --primary-bg-hover:#0A5A50;
+    --ecg-bg:#FFF7F2;
+    --ecg-border:#F3D9CE;
+    --ecg-grid:rgba(232,115,79,0.10);
+    --ecg-line:#C85A38;
+    --badge-bg:#EAF7F2;
+    --badge-border:#BFE3D4;
+    --toast-bg:#12313B;
+    --toast-text:#FFFFFF;
+    --toast-success-bg:#0A5A50;
+    --toast-error-bg:#C23B3B;
+  }
+
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --ink:#E4EFEC;
+    --teal:#3FC1AC;
+    --teal-dark:#5FD0BD;
+    --mint-50:#0B1517;
+    --mint-100:#1B2E31;
+    --card:#132225;
+    --coral:#E8734F;
+    --coral-dark:#F08A66;
+    --danger:#F07A7A;
+    --border:#2B4044;
+    --text-muted:#A9BDB9;
+    --text-faint:#7F9692;
+    --shadow-card: 0 1px 2px rgba(0,0,0,0.40), 0 8px 24px rgba(0,0,0,0.35);
+
+    --page-glow-teal:rgba(31,154,136,0.12);
+    --page-glow-coral:rgba(232,115,79,0.06);
+    --frame-border:rgba(255,255,255,0.06);
+    --surface-hover:#22383C;
+    --input-focus-bg:#132225;
+    --focus-ring:rgba(63,193,172,0.22);
+    --invalid-border:#7A3F3A;
+    --invalid-bg:#2A1C1C;
+    --invalid-ring:rgba(240,122,122,0.18);
+    --valid-bg:#14302A;
+    --primary-bg:#0F7A6C;
+    --primary-bg-hover:#128474;
+    --ecg-bg:#211A17;
+    --ecg-border:#4A3128;
+    --ecg-grid:rgba(240,138,102,0.12);
+    --ecg-line:#F08A66;
+    --badge-bg:#133129;
+    --badge-border:#24584A;
+    --toast-bg:#E4EFEC;
+    --toast-text:#12313B;
   }
 
   *{ box-sizing:border-box; margin:0; padding:0; }
@@ -45,8 +118,8 @@
   body{
     font-family:var(--font-body);
     background:
-      radial-gradient(circle at 15% 10%, rgba(15,122,108,0.10), transparent 45%),
-      radial-gradient(circle at 85% 90%, rgba(232,115,79,0.08), transparent 45%),
+      radial-gradient(circle at 15% 10%, var(--page-glow-teal), transparent 45%),
+      radial-gradient(circle at 85% 90%, var(--page-glow-coral), transparent 45%),
       var(--mint-50);
     color:var(--ink);
     min-height:100vh;
@@ -66,7 +139,7 @@
     flex-direction:column;
     position:relative;
     overflow:hidden;
-    border:1px solid rgba(11,46,48,0.08);
+    border:1px solid var(--frame-border);
   }
 
   .status-bar{
@@ -202,22 +275,22 @@
   }
   .input-field::placeholder{ color:var(--text-faint); }
   .input-field:focus{
-    background:#fff;
+    background:var(--input-focus-bg);
     border-color:var(--teal);
-    box-shadow:0 0 0 3px rgba(15,122,108,0.14);
+    box-shadow:0 0 0 3px var(--focus-ring);
   }
   .input-field[readonly]{ color:var(--text-muted); cursor:default; }
   .input-field.invalid{
-    border-color:#E9B9B0;
-    background:#FDF6F4;
+    border-color:var(--invalid-border);
+    background:var(--invalid-bg);
   }
   .input-field.invalid:focus{
     border-color:var(--danger);
-    box-shadow:0 0 0 3px rgba(209,67,67,0.12);
+    box-shadow:0 0 0 3px var(--invalid-ring);
   }
   .input-field.valid{
     border-color:var(--success);
-    background:#F4FBF8;
+    background:var(--valid-bg);
   }
   .field-msg{
     min-height:16px;
@@ -257,12 +330,12 @@
   @keyframes spin{ to{ transform:rotate(360deg); } }
 
   .btn-primary{
-    background:var(--teal);
+    background:var(--primary-bg);
     color:#fff;
     box-shadow:0 6px 16px -4px rgba(15,122,108,0.45);
     margin-top:6px;
   }
-  .btn-primary:hover{ background:var(--teal-dark); }
+  .btn-primary:hover{ background:var(--primary-bg-hover); }
 
   .btn-secondary{
     background:var(--mint-100);
@@ -270,7 +343,7 @@
     border:1.5px solid var(--border);
     margin-bottom:12px;
   }
-  .btn-secondary:hover{ background:#e0ede9; }
+  .btn-secondary:hover{ background:var(--surface-hover); }
 
   .btn-accent{
     background:var(--coral);
@@ -298,7 +371,7 @@
   .btn-list:hover{ border-color:var(--border); }
 
   .btn-pill{
-    background:var(--teal);
+    background:var(--primary-bg);
     color:#fff;
     border-radius:24px;
     width:170px;
@@ -342,12 +415,74 @@
     flex:0 0 auto;
     padding:0 14px;
     font-size:13px;
-    background:#fff;
+    background:var(--card);
     color:var(--teal-dark);
     border:1.5px solid var(--border);
   }
   .btn-logout:hover{ border-color:var(--teal); color:var(--teal); }
   .btn-logout svg{ width:15px; height:15px; }
+
+  /* ---------- Settings ---------- */
+  .settings-btn{
+    width:30px;
+    height:30px;
+    margin:-6px -6px -6px 0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:none;
+    border:none;
+    border-radius:50%;
+    color:var(--text-faint);
+    cursor:pointer;
+    transition:background 150ms ease, color 150ms ease;
+  }
+  .settings-btn:hover{ background:var(--mint-100); color:var(--teal-dark); }
+  .settings-btn svg{ width:17px; height:17px; }
+
+  .theme-options{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .theme-option{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:14px 16px;
+    background:var(--mint-100);
+    border:1.5px solid var(--border);
+    border-radius:var(--radius-sm);
+    cursor:pointer;
+    transition:border-color 150ms ease;
+  }
+  .theme-option:hover{ border-color:var(--teal); }
+  .theme-option:has(input:checked){ border-color:var(--teal); }
+  .theme-option input{
+    width:18px;
+    height:18px;
+    flex:0 0 auto;
+    accent-color:var(--primary-bg);
+  }
+  .theme-option-title{
+    display:block;
+    font-size:14px;
+    font-weight:600;
+    color:var(--ink);
+  }
+  .theme-option-hint{
+    display:block;
+    font-size:12px;
+    color:var(--text-muted);
+    margin-top:2px;
+  }
+
+  /* The logo artwork has a white background, so give it a deliberate white tile in dark mode. */
+  :root[data-theme="dark"] .welcome-logo-img{
+    border-radius:28px;
+    box-shadow:0 0 0 10px #FFFFFF;
+  }
 
   .link-text{
     color:var(--teal);
@@ -426,11 +561,11 @@
   /* ---------- ECG ---------- */
   .ecg-container{
     width:100%;
-    border:1.5px solid #F3D9CE;
-    background-color:#FFF7F2;
+    border:1.5px solid var(--ecg-border);
+    background-color:var(--ecg-bg);
     background-image:
-      linear-gradient(to right, rgba(232,115,79,0.10) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(232,115,79,0.10) 1px, transparent 1px);
+      linear-gradient(to right, var(--ecg-grid) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--ecg-grid) 1px, transparent 1px);
     background-size:12px 12px;
     padding:18px 0;
     border-radius:var(--radius-md);
@@ -444,7 +579,7 @@
   .ecg-svg{
     width:100%;
     height:100px;
-    stroke:var(--coral-dark);
+    stroke:var(--ecg-line);
     stroke-width:2;
     fill:none;
     stroke-linecap:round;
@@ -461,9 +596,9 @@
     display:inline-flex;
     align-items:center;
     gap:8px;
-    background:#EAF7F2;
+    background:var(--badge-bg);
     color:var(--teal-dark);
-    border:1px solid #BFE3D4;
+    border:1px solid var(--badge-border);
     padding:9px 16px;
     border-radius:24px;
     font-weight:600;
@@ -519,8 +654,8 @@
     transform:translate(-50%, 16px);
     width:max-content;
     max-width:min(440px, calc(100% - 32px));
-    background:var(--ink);
-    color:#fff;
+    background:var(--toast-bg);
+    color:var(--toast-text);
     padding:12px 18px;
     border-radius:var(--radius-md);
     font-size:13.5px;
@@ -533,8 +668,8 @@
     z-index:100;
   }
   .toast.show{ opacity:1; transform:translate(-50%, 0); }
-  .toast-success{ background:var(--teal-dark); }
-  .toast-error{ background:var(--danger); }
+  .toast-success{ background:var(--toast-success-bg); color:#fff; }
+  .toast-error{ background:var(--toast-error-bg); color:#fff; }
 
   /* ---------- Scrollbar ---------- */
   .screen::-webkit-scrollbar{ width:4px; }
@@ -573,7 +708,9 @@
     <div class="status-bar">
       <span id="clock">9:41</span>
       <span class="brand-mini"><img class="brand-logo-img" src="icon.png" width="18" height="18" alt="">CarePulse</span>
-      <span aria-hidden="true">●●●</span>
+      <button type="button" class="settings-btn" onclick="openSettings()" aria-label="Settings" title="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
     </div>
 
     <!-- 1. WELCOME -->
@@ -917,6 +1054,43 @@
           <div class="field-msg"></div>
         </div>
         <button class="btn btn-pill" data-primary onclick="registerDoctor(this)">Register</button>
+      </div>
+      <div class="bottom-group">
+        <button class="btn btn-back" onclick="goBack()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
+          Back
+        </button>
+      </div>
+    </div>
+
+    <!-- 12. SETTINGS -->
+    <div id="screen-settings" class="screen" data-title="Settings">
+      <div class="screen-content">
+        <h1 class="page-title">Settings</h1>
+        <div class="eyebrow">Appearance</div>
+        <div class="theme-options" role="radiogroup" aria-label="Theme">
+          <label class="theme-option">
+            <input type="radio" name="theme" value="light" onchange="setThemePreference(this.value)">
+            <span>
+              <span class="theme-option-title">Light</span>
+              <span class="theme-option-hint">Bright background</span>
+            </span>
+          </label>
+          <label class="theme-option">
+            <input type="radio" name="theme" value="dark" onchange="setThemePreference(this.value)">
+            <span>
+              <span class="theme-option-title">Dark</span>
+              <span class="theme-option-hint">Easier on the eyes at night</span>
+            </span>
+          </label>
+          <label class="theme-option">
+            <input type="radio" name="theme" value="system" onchange="setThemePreference(this.value)">
+            <span>
+              <span class="theme-option-title">System</span>
+              <span class="theme-option-hint">Match this device's setting</span>
+            </span>
+          </label>
+        </div>
       </div>
       <div class="bottom-group">
         <button class="btn btn-back" onclick="goBack()">
@@ -1476,6 +1650,53 @@
 
       navigateTo('screen-medical-report');
     }
+
+    // ---------------- Theme ----------------
+    // Saved per device. The <head> script applies it before the first paint; this keeps it in sync.
+    const THEME_STORAGE_KEY = 'carepulse-theme';
+    const systemDarkQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+    let themePreference = readStoredTheme();
+
+    function readStoredTheme(){
+      try {
+        const saved = localStorage.getItem(THEME_STORAGE_KEY);
+        return saved === 'light' || saved === 'dark' ? saved : 'system';
+      } catch {
+        return 'system';
+      }
+    }
+
+    function applyTheme(){
+      const dark = themePreference === 'dark' ||
+        (themePreference === 'system' && Boolean(systemDarkQuery && systemDarkQuery.matches));
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      document.querySelector('meta[name="theme-color"]').content = dark ? '#0B1517' : '#0F7A6C';
+    }
+
+    function setThemePreference(preference){
+      themePreference = preference;
+      try {
+        localStorage.setItem(THEME_STORAGE_KEY, preference);
+      } catch {
+        // Storage can be blocked (e.g. private browsing); the theme still applies for this visit.
+      }
+      applyTheme();
+    }
+
+    function openSettings(){
+      document.querySelectorAll('input[name="theme"]').forEach(radio => {
+        radio.checked = radio.value === themePreference;
+      });
+      navigateTo('screen-settings');
+    }
+
+    // In System mode, follow the device when it switches between light and dark.
+    if (systemDarkQuery){
+      systemDarkQuery.addEventListener('change', () => {
+        if (themePreference === 'system') applyTheme();
+      });
+    }
+    applyTheme();
 
     // ---------------- Global input handling ----------------
     document.addEventListener('input', (e) => {
