@@ -48,6 +48,7 @@
   }
 
   const HOME_FOR_ROLE = { parent: '#/dashboard', doctor: '#/patients' };
+  const SIGNED_OUT_PAGES = ['login', 'register', 'reset'];
 
   function loginHash(role){
     return role === 'doctor' ? '#/login/doctor' : '#/login';
@@ -68,15 +69,16 @@
       if (role !== 'doctor') return { redirect: HOME_FOR_ROLE[role], reason: 'wrong-role' };
     }
 
-    // Already signed in: the login page has nothing to offer, so go to your own dashboard.
-    if (route.name === 'login' && HOME_FOR_ROLE[role]) return { redirect: HOME_FOR_ROLE[role], reason: null };
+    // Already signed in: sign-in, registration and reset have nothing to offer, so go to your own dashboard.
+    if (SIGNED_OUT_PAGES.includes(route.name) && HOME_FOR_ROLE[role]) return { redirect: HOME_FOR_ROLE[role], reason: null };
 
     return { redirect: null, reason: null };
   }
 
   // ---------------- Display formatting ----------------
   const TITLES = /^(dr|mr|mrs|ms|miss|prof)\.?$/i;
-  const NAME_WORD = /^\p{L}[\p{L}'.-]*$/u;
+  // \p{M} keeps the vowel signs and viramas of Malayalam, Hindi and other Indian scripts.
+  const NAME_WORD = /^\p{L}[\p{L}\p{M}'’.-]*$/u;
 
   function initials(name){
     const words = String(name || '').trim().split(/\s+/)
@@ -128,6 +130,19 @@
       String(patient.patientId || '').toLowerCase().includes(needle));
   }
 
+  // What the patient page says when a record can't be shown: 404 means no such patient,
+  // anything else (server error, no connection) means it couldn't be loaded this time.
+  function patientLoadError(status, patientId){
+    if (status === 404){
+      return { title: 'Patient not found', message: `No patient has the ID ${patientId}.`, icon: 'search' };
+    }
+    return {
+      title: "Couldn't load this patient",
+      message: "This patient's record couldn't be loaded. Refresh the page to try again.",
+      icon: 'alert'
+    };
+  }
+
   function ageFromDob(dob, now = new Date()){
     if (!dob) return '';
     const birth = new Date(dob + 'T00:00:00');
@@ -151,7 +166,7 @@
     parseRoute, routeHash, guardRoute, loginHash,
     initials, hasValue, formatVital,
     lastReadingTime, recentReadings, heartRateSummary,
-    filterPatients, ageFromDob, formatDob
+    filterPatients, patientLoadError, ageFromDob, formatDob
   };
 
   if (typeof module !== 'undefined') module.exports = api;
