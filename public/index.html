@@ -321,6 +321,34 @@
   .btn-back:hover{ color:var(--teal); }
   .btn-back svg{ width:16px; height:16px; }
 
+  /* Title row with an action on the right (dashboards) */
+  .page-header{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:22px;
+  }
+  .page-header h1.page-title{
+    width:auto;
+    min-width:0;
+    margin-bottom:0;
+  }
+
+  .btn-logout{
+    width:auto;
+    height:38px;
+    flex:0 0 auto;
+    padding:0 14px;
+    font-size:13px;
+    background:#fff;
+    color:var(--teal-dark);
+    border:1.5px solid var(--border);
+  }
+  .btn-logout:hover{ border-color:var(--teal); color:var(--teal); }
+  .btn-logout svg{ width:15px; height:15px; }
+
   .link-text{
     color:var(--teal);
     font-size:12.5px;
@@ -527,6 +555,8 @@
 
   @media (max-width:420px){
     .field-row{ grid-template-columns:1fr; }
+    .page-header h1.page-title{ font-size:22px; }
+    .btn-logout{ height:34px; padding:0 11px; }
   }
 
   @media (min-width:1100px){
@@ -589,7 +619,13 @@
     <!-- 3. PARENT DASHBOARD -->
     <div id="screen-parent-dashboard" class="screen" data-title="Parent Dashboard">
       <div class="screen-content">
-        <h1 class="page-title">Parent Dashboard</h1>
+        <div class="page-header">
+          <h1 class="page-title">Parent Dashboard</h1>
+          <button class="btn btn-logout" onclick="logout()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+            Log out
+          </button>
+        </div>
         <p class="muted-note" id="parent-greeting"></p>
         <div class="info-grid">
           <div class="info-row">
@@ -612,12 +648,6 @@
         <p class="muted-note" id="parent-last-reading"></p>
         <div class="status-badge"><span class="dot"></span><span id="parent-status">Monitoring active</span></div>
         <button class="btn btn-accent" onclick="downloadReportPdf()">Download report</button>
-      </div>
-      <div class="bottom-group">
-        <button class="btn btn-back" onclick="logout()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
-          Log out
-        </button>
       </div>
     </div>
 
@@ -721,16 +751,16 @@
     <!-- 6. DOCTOR DASHBOARD -->
     <div id="screen-doctor-dashboard" class="screen" data-title="Doctor Dashboard">
       <div class="screen-content">
-        <h1 class="page-title">Doctor Dashboard</h1>
+        <div class="page-header">
+          <h1 class="page-title">Doctor Dashboard</h1>
+          <button class="btn btn-logout" onclick="logout()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+            Log out
+          </button>
+        </div>
         <p class="muted-note" id="doctor-greeting"></p>
         <div class="eyebrow">Patient list</div>
         <div id="doctor-patient-list" style="width:100%;"></div>
-      </div>
-      <div class="bottom-group">
-        <button class="btn btn-back" onclick="logout()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
-          Log out
-        </button>
       </div>
     </div>
 
