@@ -798,3 +798,6 @@ button.back-link:hover{ text-decoration:underline; }
   }
   html{ scroll-behavior:auto; }
 }
+
+/* ---------- No JavaScript ---------- */
+.noscript{ max-width:560px; margin:64px auto; padding:24px; text-align:center; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-card); }

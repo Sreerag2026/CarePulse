@@ -62,7 +62,8 @@ async function api(path, { method = 'GET', body, auth = true } = {}){
   const data = await response.json().catch(() => ({}));
 
   if (response.status === 401 && auth && token){
-    logout('Your session has expired. Please log in again.', '#/login');
+    // Send doctors back to the Doctor tab, parents to the Parent tab.
+    logout('Your session has expired. Please log in again.', Core.loginHash(getSession().role));
     const error = new Error('Session expired');
     error.handled = true;
     throw error;
@@ -123,9 +124,35 @@ function getSession(){
 }
 
 function logout(message = 'You have been logged out.', redirect = '#/'){
+  // Drop any page load still in flight, so its response can't write data back after logout.
+  renderSeq += 1;
   clearSession();
+  resetPrivatePages();
   navigate(redirect);
   showToast(message);
+}
+
+// Logout must not leave one user's patients, contacts or search behind for the next person.
+function resetPrivatePages(){
+  allPatients = [];
+  document.getElementById('patients-body').replaceChildren();
+  document.getElementById('patient-search').value = '';
+  const count = document.getElementById('patients-count');
+  count.textContent = '';
+  count.hidden = true;
+  ['doctor-greeting', 'patient-crumb', 'dash-patient-id', 'dash-status', 'user-initials', 'user-name', 'user-role']
+    .forEach(id => { document.getElementById(id).textContent = ''; });
+  document.getElementById('patient-title').textContent = 'Patient';
+  document.getElementById('dash-title').textContent = "Your child's health";
+  ['patient-meta', 'patient-vitals', 'patient-ecg', 'patient-readings', 'patient-contact', 'patient-summary',
+    'dash-vitals', 'dash-ecg', 'dash-readings']
+    .forEach(id => document.getElementById(id).replaceChildren());
+}
+
+// The report patient feeds the PDF; clear it whenever a page starts loading someone else.
+function clearReportPatient(){
+  currentReportPatient = null;
+  sessionStorage.removeItem('reportPatient');
 }
 
 function setCurrentReportPatient(patient){
@@ -197,6 +224,9 @@ const PAGE_TITLES = {
   settings: 'Settings'
 };
 let hasRendered = false;
+// Increments on every navigation (and on logout). A page load whose number is no longer current
+// is stale: the user has moved on, so its response must not touch the page.
+let renderSeq = 0;
 // Pages shown in this visit; Settings' Back button uses it to know whether there's somewhere to go back to.
 let renderedRoutes = 0;
 
@@ -245,8 +275,11 @@ async function renderRoute(){
   hasRendered = true;
   renderedRoutes += 1;
 
+  const seq = ++renderSeq;
+  const isStale = () => seq !== renderSeq;
+
   const page = pages[route.name];
-  if (page && page.render) await page.render(route.params);
+  if (page && page.render) await page.render(route.params, isStale);
 }
 
 window.addEventListener('hashchange', renderRoute);
@@ -649,7 +682,7 @@ function renderReadingsTable(container, patient){
 
 // ---------------- Parent dashboard ----------------
 registerPage('dashboard', {
-  async render(){
+  async render(params, isStale){
     const session = getSession();
     const body = document.getElementById('dash-body');
     const empty = document.getElementById('dash-empty');
@@ -669,6 +702,9 @@ registerPage('dashboard', {
     empty.hidden = true;
     body.hidden = download.hidden = idBadge.hidden = false;
     statusBadge.hidden = true;
+    // No report until this patient's data has arrived; an earlier download would be incomplete.
+    clearReportPatient();
+    download.disabled = true;
     title.textContent = `${session.patientName || 'Your child'}'s health`;
     idBadge.textContent = `Patient ID ${session.patientId}`;
     renderVitalCards(document.getElementById('dash-vitals'), null);
@@ -677,7 +713,9 @@ registerPage('dashboard', {
 
     try {
       const patient = await api(`/api/patient/${encodeURIComponent(session.patientId)}`);
+      if (isStale()) return;
       setCurrentReportPatient(patient);
+      download.disabled = false;
       title.textContent = `${patient.patientName || 'Your child'}'s health`;
       renderStatusBadge(statusBadge, patient.monitoringStatus);
       statusBadge.hidden = false;
@@ -686,7 +724,7 @@ registerPage('dashboard', {
       renderReadingsTable(document.getElementById('dash-readings'), patient);
     } catch (error){
       console.error(error);
-      if (error.handled) return;
+      if (error.handled || isStale()) return;
       renderVitalCards(document.getElementById('dash-vitals'), {});
       const readings = document.getElementById('dash-readings');
       readings.replaceChildren(cardHead('Recent readings', 'clock'), el('p', 'text-muted', "Couldn't load the latest readings. Refresh the page to try again."));
@@ -773,7 +811,7 @@ function renderPatientRows(query){
 document.getElementById('patient-search').addEventListener('input', (event) => renderPatientRows(event.target.value));
 
 registerPage('patients', {
-  async render(){
+  async render(params, isStale){
     const session = getSession();
     document.getElementById('doctor-greeting').textContent = session.doctorName ? `Signed in as ${session.doctorName}` : '';
     const search = document.getElementById('patient-search');
@@ -787,16 +825,19 @@ registerPage('patients', {
     loadingRow.appendChild(loadingCell);
     document.getElementById('patients-body').replaceChildren(loadingRow);
 
+    let patients;
     try {
-      allPatients = await api('/api/patients');
+      patients = await api('/api/patients');
     } catch (error){
       console.error(error);
-      if (error.handled) return;
+      if (error.handled || isStale()) return;
       showPatientsEmpty("Couldn't load patients.", 'Refresh the page to try again.');
       showToast(error.message, 'error', 6000);
       return;
     }
 
+    if (isStale()) return;
+    allPatients = patients;
     count.textContent = String(allPatients.length);
     count.hidden = false;
     renderPatientRows(search.value);
@@ -862,14 +903,18 @@ function renderPatientSummary(patient){
 }
 
 registerPage('patient', {
-  async render(params){
+  async render(params, isStale){
     const found = document.getElementById('patient-found');
     const missing = document.getElementById('patient-missing');
     const crumb = document.getElementById('patient-crumb');
     const title = document.getElementById('patient-title');
+    const download = document.getElementById('patient-download');
 
     found.hidden = false;
     missing.hidden = true;
+    // The previous patient's report must not be downloadable from this patient's page.
+    clearReportPatient();
+    download.disabled = true;
     crumb.textContent = params.patientId;
     title.textContent = 'Loading patient…';
     document.getElementById('patient-meta').replaceChildren();
@@ -884,7 +929,7 @@ registerPage('patient', {
       patient = await api(`/api/patient/${encodeURIComponent(params.patientId)}`);
     } catch (error){
       console.error(error);
-      if (error.handled) return;
+      if (error.handled || isStale()) return;
       found.hidden = true;
       missing.hidden = false;
       document.getElementById('patient-missing-text').textContent = error.status === 404
@@ -893,7 +938,9 @@ registerPage('patient', {
       return;
     }
 
+    if (isStale()) return;
     setCurrentReportPatient(patient);
+    download.disabled = false;
     const name = patient.patientName || 'Unnamed patient';
     crumb.textContent = name;
     title.textContent = name;

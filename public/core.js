@@ -4,6 +4,15 @@
   // ---------------- Routes ----------------
   const ROLES = ['parent', 'doctor'];
 
+  // A mangled link (e.g. a cut-off %-escape) must not crash the router.
+  function safeDecode(value){
+    try {
+      return decodeURIComponent(value);
+    } catch {
+      return value;
+    }
+  }
+
   function parseRoute(hash){
     const parts = String(hash || '').replace(/^#\/?/, '').split('/').filter(Boolean);
     const [first, second, extra] = parts;
@@ -15,7 +24,7 @@
     }
     if (first === 'patients' && !extra){
       if (!second) return { name: 'patients', params: {} };
-      return { name: 'patient', params: { patientId: decodeURIComponent(second) } };
+      return { name: 'patient', params: { patientId: safeDecode(second) } };
     }
     if (parts.length === 1){
       if (first === 'reset-password') return { name: 'reset', params: {} };
@@ -40,18 +49,22 @@
 
   const HOME_FOR_ROLE = { parent: '#/dashboard', doctor: '#/patients' };
 
+  function loginHash(role){
+    return role === 'doctor' ? '#/login/doctor' : '#/login';
+  }
+
   function guardRoute(route, session){
     const role = session && session.role;
 
     if (route.name === 'notFound') return { redirect: '#/', reason: null };
 
     if (route.name === 'dashboard'){
-      if (!role) return { redirect: '#/login', reason: 'login-required' };
+      if (!role) return { redirect: loginHash('parent'), reason: 'login-required' };
       if (role !== 'parent') return { redirect: HOME_FOR_ROLE[role], reason: 'wrong-role' };
     }
 
     if (route.name === 'patients' || route.name === 'patient'){
-      if (!role) return { redirect: '#/login/doctor', reason: 'login-required' };
+      if (!role) return { redirect: loginHash('doctor'), reason: 'login-required' };
       if (role !== 'doctor') return { redirect: HOME_FOR_ROLE[role], reason: 'wrong-role' };
     }
 
@@ -135,7 +148,7 @@
   }
 
   const api = {
-    parseRoute, routeHash, guardRoute,
+    parseRoute, routeHash, guardRoute, loginHash,
     initials, hasValue, formatVital,
     lastReadingTime, recentReadings, heartRateSummary,
     filterPatients, ageFromDob, formatDob

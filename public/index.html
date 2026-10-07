@@ -21,9 +21,11 @@
   })();
 </script>
 <link rel="stylesheet" href="styles.css">
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
+  <noscript>
+    <p class="noscript">CarePulse needs JavaScript to run. Please turn it on in your browser settings and reload the page.</p>
+  </noscript>
 
   <!-- Icon set (line icons in the Lucide style). Use: <svg class="icon"><use href="#i-NAME"/></svg> -->
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
@@ -564,7 +566,7 @@
               <h1 id="patient-title">Patient</h1>
               <div class="page-meta" id="patient-meta"></div>
             </div>
-            <button type="button" class="btn btn-secondary" onclick="downloadReportPdf()">
+            <button type="button" class="btn btn-secondary" id="patient-download" onclick="downloadReportPdf()">
               <svg class="icon" aria-hidden="true"><use href="#i-download"/></svg>
               Download report
             </button>
@@ -660,5 +662,7 @@
 
   <script defer src="core.js"></script>
   <script defer src="app.js"></script>
+  <!-- Loaded last: deferred scripts run in order, so the PDF library never delays the page. -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </body>
 </html>

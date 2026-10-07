@@ -22,6 +22,16 @@ test("parseRoute: app pages and patient IDs", () => {
   assert.deepEqual(core.parseRoute("#/patients/CP123456"), { name: "patient", params: { patientId: "CP123456" } });
 });
 
+test("parseRoute: a malformed escape in a patient link doesn't throw", () => {
+  assert.deepEqual(core.parseRoute("#/patients/%E0%A4"), { name: "patient", params: { patientId: "%E0%A4" } });
+});
+
+test("loginHash sends each role to its own sign-in tab", () => {
+  assert.equal(core.loginHash("doctor"), "#/login/doctor");
+  assert.equal(core.loginHash("parent"), "#/login");
+  assert.equal(core.loginHash(null), "#/login");
+});
+
 test("parseRoute: unknown hashes are notFound", () => {
   assert.equal(core.parseRoute("#/nope").name, "notFound");
   assert.equal(core.parseRoute("#/login/admin").name, "notFound");
