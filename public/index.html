@@ -241,17 +241,244 @@
       </div>
     </section>
 
+    <!-- Sign in -->
     <section class="page" data-page="login" hidden>
-      <div class="container app-main"><h1>Sign in</h1></div>
+      <div class="auth-layout">
+        <aside class="auth-brand" data-auth-brand></aside>
+        <div class="auth-main">
+          <div class="auth-card">
+            <h1>Sign in</h1>
+            <p class="auth-subtitle" data-role-text data-parent="Follow your child's vitals and reports." data-doctor="See your patients and their latest readings."></p>
+            <nav class="segmented auth-tabs" aria-label="Account type">
+              <a href="#/login" data-role-tab="parent">Parent</a>
+              <a href="#/login/doctor" data-role-tab="doctor">Doctor</a>
+            </nav>
+
+            <form id="parent-login-form" data-role-form="parent" novalidate>
+              <div class="field">
+                <label for="login-email">Email</label>
+                <input type="email" id="login-email" class="input" data-validate="email" placeholder="you@example.com" autocomplete="email">
+                <div class="field-msg"></div>
+              </div>
+              <div class="field">
+                <div class="label-row"><label for="login-password">Password</label><a href="#/reset-password">Forgot password?</a></div>
+                <input type="password" id="login-password" class="input" data-validate="required" placeholder="Enter your password" autocomplete="current-password">
+                <div class="field-msg"></div>
+              </div>
+              <button type="submit" class="btn btn-primary btn-lg btn-block">Log in</button>
+              <p class="auth-switch">New to CarePulse? <a href="#/register">Create an account</a></p>
+            </form>
+
+            <form id="doctor-login-form" data-role-form="doctor" novalidate>
+              <div class="field-row">
+                <div class="field">
+                  <label for="doctor-hospital-id">Hospital ID</label>
+                  <input type="text" id="doctor-hospital-id" class="input" data-validate="required" placeholder="HOSP-2291" autocomplete="organization">
+                  <div class="field-msg"></div>
+                </div>
+                <div class="field">
+                  <label for="doctor-id">Doctor ID</label>
+                  <input type="text" id="doctor-id" class="input" data-validate="required" placeholder="DR-0148" autocomplete="username">
+                  <div class="field-msg"></div>
+                </div>
+              </div>
+              <div class="field">
+                <label for="doctor-password">Password</label>
+                <input type="password" id="doctor-password" class="input" data-validate="required" placeholder="Enter your password" autocomplete="current-password">
+                <div class="field-msg"></div>
+              </div>
+              <button type="submit" class="btn btn-primary btn-lg btn-block">Log in</button>
+              <p class="auth-switch">New doctor? <a href="#/register/doctor">Register with a code</a></p>
+            </form>
+          </div>
+        </div>
+      </div>
     </section>
 
+    <!-- Registration (parent and doctor) -->
     <section class="page" data-page="register" hidden>
-      <div class="container app-main"><h1>Create an account</h1></div>
+      <div class="auth-layout">
+        <aside class="auth-brand" data-auth-brand></aside>
+        <div class="auth-main">
+          <div class="auth-card auth-card-wide">
+            <h1>Create an account</h1>
+            <p class="auth-subtitle" data-role-text data-parent="Register your child to start monitoring." data-doctor="You'll need the registration code from your hospital administrator."></p>
+            <nav class="segmented auth-tabs" aria-label="Account type">
+              <a href="#/register" data-role-tab="parent">Parent</a>
+              <a href="#/register/doctor" data-role-tab="doctor">Doctor</a>
+            </nav>
+
+            <form id="parent-register-form" data-role-form="parent" novalidate>
+              <h2 class="form-section-title">Patient details</h2>
+              <div class="field">
+                <label for="patient-name">Patient name</label>
+                <input type="text" id="patient-name" class="input" data-validate="required" placeholder="Your child's full name" autocomplete="off">
+                <div class="field-msg"></div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="reg-dob">Date of birth</label>
+                  <input type="date" id="reg-dob" class="input" data-validate="dob">
+                  <div class="field-msg"></div>
+                </div>
+                <div class="field">
+                  <label for="reg-age">Age</label>
+                  <input type="text" id="reg-age" class="input" placeholder="Calculated automatically" readonly tabindex="-1">
+                  <div class="field-msg"></div>
+                </div>
+              </div>
+              <div class="field">
+                <label for="reg-gender">Gender</label>
+                <select id="reg-gender" class="input" data-validate="required">
+                  <option value="">Select gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                  <option value="Prefer not to say">Prefer not to say</option>
+                </select>
+                <div class="field-msg"></div>
+              </div>
+
+              <h2 class="form-section-title">Your details</h2>
+              <div class="field">
+                <label for="parent-name">Parent name</label>
+                <input type="text" id="parent-name" class="input" data-validate="required" placeholder="Your full name" autocomplete="name">
+                <div class="field-msg"></div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="phone-number">Phone number</label>
+                  <input type="tel" id="phone-number" class="input" data-validate="phone" placeholder="10-digit mobile number" maxlength="10" inputmode="numeric" autocomplete="tel-national">
+                  <div class="field-msg"></div>
+                </div>
+                <div class="field">
+                  <label for="reg-email">Email</label>
+                  <input type="email" id="reg-email" class="input" data-validate="email" placeholder="you@example.com" autocomplete="email">
+                  <div class="field-msg"></div>
+                </div>
+              </div>
+
+              <h2 class="form-section-title">Account</h2>
+              <div class="field-row">
+                <div class="field">
+                  <label for="reg-password">Password</label>
+                  <input type="password" id="reg-password" class="input" data-validate="password" placeholder="At least 8 characters" autocomplete="new-password">
+                  <div class="field-msg"></div>
+                </div>
+                <div class="field">
+                  <label for="reg-password-confirm">Confirm password</label>
+                  <input type="password" id="reg-password-confirm" class="input" data-validate="confirm" data-confirm-target="reg-password" placeholder="Re-enter password" autocomplete="new-password">
+                  <div class="field-msg"></div>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary btn-lg btn-block">Create account</button>
+              <p class="auth-switch">Already registered? <a href="#/login">Sign in</a></p>
+            </form>
+
+            <form id="doctor-register-form" data-role-form="doctor" novalidate>
+              <h2 class="form-section-title">Hospital details</h2>
+              <div class="field-row">
+                <div class="field">
+                  <label for="dr-reg-hospital-id">Hospital ID</label>
+                  <input type="text" id="dr-reg-hospital-id" class="input" data-validate="required" placeholder="HOSP-2291" autocomplete="organization">
+                  <div class="field-msg"></div>
+                </div>
+                <div class="field">
+                  <label for="dr-reg-doctor-id">Doctor ID</label>
+                  <input type="text" id="dr-reg-doctor-id" class="input" data-validate="required" placeholder="DR-0148" autocomplete="username">
+                  <div class="field-msg"></div>
+                </div>
+              </div>
+
+              <h2 class="form-section-title">Your details</h2>
+              <div class="field">
+                <label for="dr-reg-name">Full name</label>
+                <input type="text" id="dr-reg-name" class="input" data-validate="required" placeholder="Dr. Priya Nair" autocomplete="name">
+                <div class="field-msg"></div>
+              </div>
+
+              <h2 class="form-section-title">Account</h2>
+              <div class="field-row">
+                <div class="field">
+                  <label for="dr-reg-password">Password</label>
+                  <input type="password" id="dr-reg-password" class="input" data-validate="password" placeholder="At least 8 characters" autocomplete="new-password">
+                  <div class="field-msg"></div>
+                </div>
+                <div class="field">
+                  <label for="dr-reg-password-confirm">Confirm password</label>
+                  <input type="password" id="dr-reg-password-confirm" class="input" data-validate="confirm" data-confirm-target="dr-reg-password" placeholder="Re-enter password" autocomplete="new-password">
+                  <div class="field-msg"></div>
+                </div>
+              </div>
+              <div class="field">
+                <label for="dr-reg-code">Registration code</label>
+                <input type="password" id="dr-reg-code" class="input" data-validate="required" placeholder="From your hospital administrator" autocomplete="off">
+                <div class="field-msg"></div>
+              </div>
+              <button type="submit" class="btn btn-primary btn-lg btn-block">Create doctor account</button>
+              <p class="auth-switch">Already registered? <a href="#/login/doctor">Sign in</a></p>
+            </form>
+          </div>
+        </div>
+      </div>
     </section>
 
+    <!-- Password reset (parents) -->
     <section class="page" data-page="reset" hidden>
-      <div class="container app-main"><h1>Reset your password</h1></div>
+      <div class="auth-layout">
+        <aside class="auth-brand" data-auth-brand></aside>
+        <div class="auth-main">
+          <div class="auth-card">
+            <a class="back-link" href="#/login"><svg class="icon" aria-hidden="true"><use href="#i-chevron-left"/></svg>Back to sign in</a>
+            <h1>Reset your password</h1>
+            <p class="auth-subtitle">Confirm the details you registered with. Your Patient ID was shown when you registered and is printed on downloaded reports.</p>
+            <form id="reset-form" novalidate>
+              <div class="field">
+                <label for="fp-email">Email</label>
+                <input type="email" id="fp-email" class="input" data-validate="email" placeholder="you@example.com" autocomplete="email">
+                <div class="field-msg"></div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="fp-phone">Registered phone number</label>
+                  <input type="tel" id="fp-phone" class="input" data-validate="phone" placeholder="10-digit mobile number" maxlength="10" inputmode="numeric" autocomplete="tel-national">
+                  <div class="field-msg"></div>
+                </div>
+                <div class="field">
+                  <label for="fp-patient-id">Patient ID</label>
+                  <input type="text" id="fp-patient-id" class="input" data-validate="required" placeholder="CP123456" autocomplete="off">
+                  <div class="field-msg"></div>
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="fp-password">New password</label>
+                  <input type="password" id="fp-password" class="input" data-validate="password" placeholder="At least 8 characters" autocomplete="new-password">
+                  <div class="field-msg"></div>
+                </div>
+                <div class="field">
+                  <label for="fp-password-confirm">Confirm password</label>
+                  <input type="password" id="fp-password-confirm" class="input" data-validate="confirm" data-confirm-target="fp-password" placeholder="Re-enter new password" autocomplete="new-password">
+                  <div class="field-msg"></div>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary btn-lg btn-block">Save new password</button>
+            </form>
+          </div>
+        </div>
+      </div>
     </section>
+
+    <template id="auth-brand-template">
+      <div class="auth-brand-inner">
+        <p class="auth-brand-title">Continuous care, visible to the people who matter</p>
+        <ul class="auth-benefits">
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Live vitals from the monitoring device</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Every patient in one place for doctors</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Parents see only their own child's records</li>
+        </ul>
+      </div>
+    </template>
 
     <section class="page" data-page="dashboard" hidden>
       <div class="container app-main"><h1>Dashboard</h1></div>

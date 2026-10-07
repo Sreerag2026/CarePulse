@@ -541,6 +541,51 @@ button{ font:inherit; color:inherit; }
 .btn-outline-on-primary{ background:transparent; color:#FFFFFF; border-color:rgba(255,255,255,0.7); }
 .btn-outline-on-primary:hover{ background:rgba(255,255,255,0.12); }
 
+/* ---------- Auth pages ---------- */
+.auth-layout{
+  display:grid;
+  grid-template-columns:minmax(0, 0.85fr) minmax(0, 1.15fr);
+  min-height:calc(100vh - var(--nav-height));
+}
+.auth-brand{
+  background:var(--primary);
+  color:var(--on-primary);
+  display:flex;
+  align-items:center;
+  padding:48px clamp(32px, 5vw, 72px);
+}
+.auth-brand-inner{ max-width:400px; }
+.auth-brand-title{ font-size:30px; font-weight:600; line-height:1.2; letter-spacing:-0.02em; }
+.auth-benefits{ list-style:none; margin:28px 0 0; padding:0; display:flex; flex-direction:column; gap:14px; font-size:16px; }
+.auth-benefits li{ display:flex; align-items:center; gap:12px; }
+.auth-benefits .icon{
+  width:22px;
+  height:22px;
+  padding:3px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.18);
+}
+
+.auth-main{ display:flex; align-items:flex-start; justify-content:center; padding:56px 24px 72px; }
+.auth-card{ width:100%; max-width:440px; }
+.auth-card-wide{ max-width:560px; }
+.auth-subtitle{ color:var(--text-muted); margin:6px 0 24px; }
+.auth-subtitle:empty{ display:none; }
+.auth-tabs{ display:flex; margin-bottom:24px; }
+.auth-tabs a{ flex:1; text-align:center; }
+.auth-switch{ text-align:center; font-size:15px; color:var(--text-muted); margin-top:20px; }
+.label-row{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+.label-row a{ font-size:14px; font-weight:500; }
+form .btn-block{ margin-top:8px; }
+[data-role-form][hidden]{ display:none; }
+.back-link{ display:inline-flex; align-items:center; gap:4px; font-size:14px; font-weight:500; margin-bottom:20px; }
+
+@media (max-width:899px){
+  .auth-layout{ grid-template-columns:1fr; min-height:0; }
+  .auth-brand{ display:none; }
+  .auth-main{ padding:32px 16px 56px; }
+}
+
 /* ---------- Footer ---------- */
 .site-footer{ background:var(--surface); border-top:1px solid var(--border); padding-top:48px; }
 .footer-grid{ display:grid; grid-template-columns:minmax(0, 1.6fr) repeat(3, minmax(0, 1fr)); gap:32px; }

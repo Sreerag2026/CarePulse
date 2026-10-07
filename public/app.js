@@ -290,6 +290,228 @@ registerPage('home', {
   }
 });
 
+// ---------------- Form validation ----------------
+function fieldValue(id){
+  return document.getElementById(id).value.trim();
+}
+
+function validateField(input, showMessage){
+  const rule = input.dataset.validate;
+  const val = input.value.trim();
+  let valid = val.length > 0;
+  let message = 'Required';
+
+  if (rule === 'email'){
+    valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+    message = val.length === 0 ? 'Required' : 'Enter a valid email address with @ and a domain such as .com';
+  } else if (rule === 'password'){
+    valid = val.length >= 8;
+    message = val.length === 0 ? 'Required' : 'Password must contain at least 8 characters';
+  } else if (rule === 'dob'){
+    const selectedDate = new Date(val + 'T00:00:00');
+    valid = Boolean(val) && !Number.isNaN(selectedDate.getTime()) && selectedDate <= new Date();
+    message = val.length === 0 ? 'Required' : 'Enter a valid date of birth';
+  } else if (rule === 'phone'){
+    valid = /^\d{10}$/.test(val.replace(/\D/g, ''));
+    message = val.length === 0 ? 'Required' : 'Invalid phone number. Enter exactly 10 digits';
+  } else if (rule === 'confirm'){
+    const target = document.getElementById(input.dataset.confirmTarget);
+    valid = val.length > 0 && input.value === (target ? target.value : '');
+    message = val.length === 0 ? 'Required' : 'Passwords don’t match';
+  }
+
+  input.classList.toggle('invalid', !valid);
+  input.setAttribute('aria-invalid', String(!valid));
+
+  const msgEl = input.closest('.field').querySelector('.field-msg');
+  if (msgEl) msgEl.textContent = (!valid && showMessage) ? message : '';
+  return valid;
+}
+
+function validateForm(form){
+  let firstInvalid = null;
+  form.querySelectorAll('[data-validate]').forEach(input => {
+    if (!validateField(input, true) && !firstInvalid) firstInvalid = input;
+  });
+  if (firstInvalid) firstInvalid.focus();
+  return !firstInvalid;
+}
+
+// Fresh pages start neutral; errors appear once the user interacts or submits.
+function resetValidation(container){
+  container.querySelectorAll('[data-validate]').forEach(input => {
+    input.classList.remove('invalid');
+    input.removeAttribute('aria-invalid');
+    const msgEl = input.closest('.field').querySelector('.field-msg');
+    if (msgEl) msgEl.textContent = '';
+  });
+}
+
+document.addEventListener('input', (event) => {
+  const input = event.target;
+  if (input.type === 'tel') input.value = input.value.replace(/\D/g, '').slice(0, 10);
+  if (!input.matches('[data-validate]')) return;
+
+  // Re-check only fields that were already flagged, so nobody is told off mid-typing.
+  if (input.classList.contains('invalid')) validateField(input, true);
+  if (input.id){
+    document.querySelectorAll(`[data-confirm-target="${input.id}"]`).forEach(confirm => {
+      if (confirm.value) validateField(confirm, true);
+    });
+  }
+});
+
+document.addEventListener('focusout', (event) => {
+  if (event.target.matches('[data-validate]') && event.target.value.trim()){
+    validateField(event.target, true);
+  }
+});
+
+// Runs a form's handler on submit (Enter or button), with validation and a busy button.
+function onSubmit(formId, handler){
+  const form = document.getElementById(formId);
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (!validateForm(form)) return;
+    withBusy(form.querySelector('[type="submit"]'), () => handler(form));
+  });
+}
+
+// ---------------- Auth pages ----------------
+const brandTemplate = document.getElementById('auth-brand-template');
+document.querySelectorAll('[data-auth-brand]').forEach(slot => slot.appendChild(brandTemplate.content.cloneNode(true)));
+
+// Login and registration pages each hold a parent and a doctor form; show the one for the route's role.
+function showRoleForms(pageName, role){
+  const section = document.querySelector(`.page[data-page="${pageName}"]`);
+  section.querySelectorAll('[data-role-tab]').forEach(tab => {
+    if (tab.dataset.roleTab === role) tab.setAttribute('aria-current', 'page');
+    else tab.removeAttribute('aria-current');
+  });
+  section.querySelectorAll('[data-role-form]').forEach(form => {
+    form.hidden = form.dataset.roleForm !== role;
+  });
+  const subtitle = section.querySelector('[data-role-text]');
+  if (subtitle) subtitle.textContent = subtitle.dataset[role] || '';
+  resetValidation(section);
+}
+
+registerPage('login', { render: (params) => showRoleForms('login', params.role) });
+registerPage('register', { render: (params) => showRoleForms('register', params.role) });
+registerPage('reset', { render: () => resetValidation(document.querySelector('.page[data-page="reset"]')) });
+
+onSubmit('parent-login-form', async () => {
+  const data = await api('/api/parent-login', {
+    method: 'POST',
+    auth: false,
+    body: { email: fieldValue('login-email'), password: document.getElementById('login-password').value }
+  });
+
+  clearSession();
+  saveSession({
+    authToken: data.token,
+    role: 'parent',
+    parentName: data.parentName,
+    patientName: data.patientName,
+    patientId: data.patientId
+  });
+  document.getElementById('login-password').value = '';
+  navigate('#/dashboard');
+  showToast(`Welcome, ${data.parentName || 'back'}!`, 'success');
+});
+
+onSubmit('doctor-login-form', async () => {
+  const data = await api('/api/doctor-login', {
+    method: 'POST',
+    auth: false,
+    body: {
+      hospitalId: fieldValue('doctor-hospital-id'),
+      doctorId: fieldValue('doctor-id'),
+      password: document.getElementById('doctor-password').value
+    }
+  });
+
+  clearSession();
+  saveSession({ authToken: data.token, role: 'doctor', doctorName: data.doctorName });
+  document.getElementById('doctor-password').value = '';
+  navigate('#/patients');
+  showToast(`Welcome${data.doctorName ? ', ' + data.doctorName : ''}!`, 'success');
+});
+
+onSubmit('parent-register-form', async (form) => {
+  const email = fieldValue('reg-email');
+  const data = await api('/api/register', {
+    method: 'POST',
+    auth: false,
+    body: {
+      patientName: fieldValue('patient-name'),
+      dob: fieldValue('reg-dob'),
+      gender: fieldValue('reg-gender'),
+      parentName: fieldValue('parent-name'),
+      phone: fieldValue('phone-number'),
+      email,
+      password: document.getElementById('reg-password').value
+    }
+  });
+
+  alert(`Registration successful!\n\nPatient ID: ${data.patientId}\n\nPlease note this ID down — you will need it if you ever reset your password.`);
+  form.reset();
+  document.getElementById('login-email').value = email;
+  navigate('#/login');
+});
+
+onSubmit('doctor-register-form', async (form) => {
+  const hospitalId = fieldValue('dr-reg-hospital-id');
+  const doctorId = fieldValue('dr-reg-doctor-id');
+  const data = await api('/api/doctor-register', {
+    method: 'POST',
+    auth: false,
+    body: {
+      hospitalId,
+      doctorId,
+      doctorName: fieldValue('dr-reg-name'),
+      password: document.getElementById('dr-reg-password').value,
+      signupCode: fieldValue('dr-reg-code')
+    }
+  });
+
+  form.reset();
+  document.getElementById('doctor-hospital-id').value = data.hospitalId || hospitalId;
+  document.getElementById('doctor-id').value = data.doctorId || doctorId;
+  navigate('#/login/doctor');
+  showToast('Registration successful. You can log in now.', 'success');
+});
+
+onSubmit('reset-form', async (form) => {
+  const email = fieldValue('fp-email');
+  const data = await api('/api/reset-password', {
+    method: 'POST',
+    auth: false,
+    body: {
+      email,
+      phone: fieldValue('fp-phone'),
+      patientId: fieldValue('fp-patient-id'),
+      newPassword: document.getElementById('fp-password').value
+    }
+  });
+
+  form.reset();
+  document.getElementById('login-email').value = email;
+  navigate('#/login');
+  showToast(data.message || 'Password updated.', 'success');
+});
+
+// Date of birth: no future dates, and the age fills itself in.
+(function(){
+  const dobInput = document.getElementById('reg-dob');
+  const ageInput = document.getElementById('reg-age');
+  const today = new Date();
+  dobInput.max = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  const updateAge = () => { ageInput.value = Core.ageFromDob(dobInput.value); };
+  dobInput.addEventListener('change', updateAge);
+  dobInput.addEventListener('input', updateAge);
+})();
+
 // ---------------- PDF report ----------------
 function downloadReportPdf(){
   try {
