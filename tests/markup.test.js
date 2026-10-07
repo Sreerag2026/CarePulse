@@ -17,3 +17,11 @@ test("the app's scripts don't wait for the PDF library to download", () => {
 test("browsers without JavaScript get a message instead of a blank page", () => {
   assert.match(html, /<noscript>[\s\S]*JavaScript[\s\S]*<\/noscript>/);
 });
+
+test("every patient-page error icon is in the icon set", () => {
+  const core = require("../public/core.js");
+  for (const status of [404, 500, undefined]) {
+    const { icon } = core.patientLoadError(status, "CP1");
+    assert.match(html, new RegExp(`<symbol id="i-${icon}"`), `icon i-${icon} is missing from index.html`);
+  }
+});

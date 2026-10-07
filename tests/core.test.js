@@ -65,10 +65,21 @@ test("guardRoute: logged-in users skip the login page", () => {
   assert.equal(core.guardRoute(core.parseRoute("#/login/doctor"), { role: "doctor" }).redirect, "#/patients");
 });
 
+test("guardRoute: logged-in users skip the registration and reset pages", () => {
+  assert.equal(core.guardRoute(core.parseRoute("#/register"), { role: "parent" }).redirect, "#/dashboard");
+  assert.equal(core.guardRoute(core.parseRoute("#/register/doctor"), { role: "doctor" }).redirect, "#/patients");
+  assert.equal(core.guardRoute(core.parseRoute("#/register/doctor"), { role: "parent" }).redirect, "#/dashboard");
+  assert.equal(core.guardRoute(core.parseRoute("#/reset-password"), { role: "parent" }).redirect, "#/dashboard");
+  assert.equal(core.guardRoute(core.parseRoute("#/reset-password"), { role: "doctor" }).redirect, "#/patients");
+});
+
 test("guardRoute: public pages are open and unknown pages go home", () => {
   for (const role of [null, "parent", "doctor"]) {
     assert.deepEqual(core.guardRoute(core.parseRoute("#/"), { role }), { redirect: null, reason: null });
     assert.deepEqual(core.guardRoute(core.parseRoute("#/settings"), { role }), { redirect: null, reason: null });
+  }
+  for (const hash of ["#/login", "#/login/doctor", "#/register", "#/register/doctor", "#/reset-password"]) {
+    assert.deepEqual(core.guardRoute(core.parseRoute(hash), { role: null }), { redirect: null, reason: null }, hash);
   }
   assert.deepEqual(core.guardRoute(core.parseRoute("#/nope"), { role: null }), { redirect: "#/", reason: null });
 });
@@ -81,6 +92,26 @@ test("initials", () => {
   assert.equal(core.initials("   "), "?");
   assert.equal(core.initials("<img src=x>"), "?");
   assert.equal(core.initials(undefined), "?");
+});
+
+test("initials: names in Malayalam or Hindi script, and curly apostrophes", () => {
+  assert.equal(core.initials("അനന്തു കൃഷ്ണൻ"), "അക");
+  assert.equal(core.initials("प्रिया शर्मा"), "पश");
+  assert.equal(core.initials("Riya D’Souza"), "RD");
+});
+
+test("patientLoadError: a missing patient and a failed load read differently", () => {
+  assert.deepEqual(core.patientLoadError(404, "CP1"), {
+    title: "Patient not found",
+    message: "No patient has the ID CP1.",
+    icon: "search"
+  });
+  const failed = core.patientLoadError(500, "CP1");
+  assert.equal(failed.title, "Couldn't load this patient");
+  assert.match(failed.message, /Refresh the page/);
+  assert.notEqual(failed.icon, "search");
+  // A network failure has no status at all.
+  assert.deepEqual(core.patientLoadError(undefined, "CP1"), failed);
 });
 
 test("formatVital", () => {

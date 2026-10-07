@@ -930,11 +930,16 @@ registerPage('patient', {
     } catch (error){
       console.error(error);
       if (error.handled || isStale()) return;
+      const { title: errorTitle, message, icon } = Core.patientLoadError(error.status, params.patientId);
+      const missingTitle = document.getElementById('patient-missing-title');
+      missingTitle.textContent = errorTitle;
+      document.getElementById('patient-missing-text').textContent = message;
+      document.getElementById('patient-missing-icon').setAttribute('href', `#i-${icon}`);
+      // The page heading had focus and is about to be hidden; hand focus to the message instead.
+      const hadFocus = found.contains(document.activeElement);
       found.hidden = true;
       missing.hidden = false;
-      document.getElementById('patient-missing-text').textContent = error.status === 404
-        ? `No patient has the ID ${params.patientId}.`
-        : "This patient's record couldn't be loaded. Refresh the page to try again.";
+      if (hadFocus) missingTitle.focus({ preventScroll: true });
       return;
     }
 
