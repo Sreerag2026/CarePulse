@@ -1,2 +1,5 @@
 node_modules
-.env 
+.env
+
+# Saved copies of the Render dashboard page (not part of the app)
+CarePulse*Render Dashboard*
